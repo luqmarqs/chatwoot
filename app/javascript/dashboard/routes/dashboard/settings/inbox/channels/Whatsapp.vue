@@ -8,12 +8,15 @@ import CloudWhatsapp from './CloudWhatsapp.vue';
 import WhatsappEmbeddedSignup from './WhatsappEmbeddedSignup.vue';
 import ChannelSelector from 'dashboard/components/ChannelSelector.vue';
 import { useAccount } from 'dashboard/composables/useAccount';
+import { useWhatsAppOnly } from 'dashboard/composables/useWhatsAppOnly';
+import { filterWhatsAppProviders } from '../helpers/whatsappProviders';
 import { FEATURE_FLAGS } from 'dashboard/featureFlags';
 
 const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
 const { isCloudFeatureEnabled, isOnChatwootCloud } = useAccount();
+const { isWhatsAppOnly } = useWhatsAppOnly();
 
 const PROVIDER_TYPES = {
   WHATSAPP: 'whatsapp',
@@ -31,7 +34,13 @@ const hasWhatsappAppId = computed(() => {
   );
 });
 
-const selectedProvider = computed(() => route.query.provider);
+const selectedProvider = computed(() => {
+  if (isWhatsAppOnly.value && route.query.provider) {
+    return PROVIDER_TYPES.WHATSAPP;
+  }
+
+  return route.query.provider;
+});
 
 const showProviderSelection = computed(() => !selectedProvider.value);
 
@@ -46,20 +55,24 @@ const shouldShowWhatsappEmbeddedSignup = computed(() => {
   );
 });
 
-const availableProviders = computed(() => [
-  {
-    key: PROVIDER_TYPES.WHATSAPP,
-    title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.WHATSAPP_CLOUD'),
-    description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.WHATSAPP_CLOUD_DESC'),
-    icon: 'i-woot-whatsapp',
-  },
-  {
-    key: PROVIDER_TYPES.TWILIO,
-    title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.TWILIO'),
-    description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.TWILIO_DESC'),
-    icon: 'i-woot-twilio',
-  },
-]);
+const availableProviders = computed(() => {
+  const providers = [
+    {
+      key: PROVIDER_TYPES.WHATSAPP,
+      title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.WHATSAPP_CLOUD'),
+      description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.WHATSAPP_CLOUD_DESC'),
+      icon: 'i-woot-whatsapp',
+    },
+    {
+      key: PROVIDER_TYPES.TWILIO,
+      title: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.TWILIO'),
+      description: t('INBOX_MGMT.ADD.WHATSAPP.PROVIDERS.TWILIO_DESC'),
+      icon: 'i-woot-twilio',
+    },
+  ];
+
+  return filterWhatsAppProviders(providers, isWhatsAppOnly.value);
+});
 
 const selectProvider = providerValue => {
   router.push({

@@ -5,12 +5,15 @@ import { useRouter } from 'vue-router';
 import { useMapGetter } from 'dashboard/composables/store';
 
 import { useAccount } from 'dashboard/composables/useAccount';
+import { useWhatsAppOnly } from 'dashboard/composables/useWhatsAppOnly';
+import { filterChannelsForWhatsAppOnly } from './helpers/channelList';
 
 import ChannelItem from 'dashboard/components/widgets/ChannelItem.vue';
 
 const { t } = useI18n();
 const router = useRouter();
 const { accountId, currentAccount } = useAccount();
+const { isWhatsAppOnly } = useWhatsAppOnly();
 
 const globalConfig = useMapGetter('globalConfig/get');
 
@@ -102,7 +105,7 @@ const channelList = computed(() => {
     icon: 'i-woot-whatsapp',
   });
 
-  return channels;
+  return filterChannelsForWhatsAppOnly(channels, isWhatsAppOnly.value);
 });
 
 const initChannelAuth = channel => {

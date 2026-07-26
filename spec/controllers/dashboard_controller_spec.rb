@@ -40,3 +40,17 @@ describe '/app/login', type: :request do
     end
   end
 end
+
+RSpec.describe DashboardController do
+  describe '#app_config' do
+    it 'exposes WhatsApp-only mode only when the environment flag is true' do
+      with_modified_env 'WHATSAPP_ONLY' => 'true' do
+        expect(controller.send(:app_config)[:WHATSAPP_ONLY]).to be(true)
+      end
+
+      with_modified_env 'WHATSAPP_ONLY' => 'false' do
+        expect(controller.send(:app_config)[:WHATSAPP_ONLY]).to be(false)
+      end
+    end
+  end
+end
