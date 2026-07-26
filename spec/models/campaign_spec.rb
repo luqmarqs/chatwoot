@@ -225,6 +225,21 @@ RSpec.describe Campaign do
     end
   end
 
+  context 'when WhatsApp campaigns are disabled for the account' do
+    let(:account) { create(:account) }
+    let(:whatsapp_channel) do
+      create(:channel_whatsapp, account: account, provider: 'whatsapp_cloud', validate_provider_config: false, sync_templates: false)
+    end
+    let(:whatsapp_inbox) { whatsapp_channel.inbox }
+
+    it 'does not create a legacy campaign for the WhatsApp inbox' do
+      campaign = build(:campaign, account: account, inbox: whatsapp_inbox)
+
+      expect(campaign).not_to be_valid
+      expect(campaign.errors[:inbox]).to include('legacy WhatsApp campaigns are disabled')
+    end
+  end
+
   context 'when validating inbox' do
     let(:account) { create(:account) }
     let(:other_account) { create(:account) }
