@@ -4,7 +4,7 @@ class Whatsapp::BulkCampaignSendJob < ApplicationJob
   def perform(campaign_id)
     campaign = Whatsapp::BulkCampaign.find_by(id: campaign_id)
     return unless campaign
-    return unless campaign.draft? || campaign.scheduled?
+    return unless campaign.draft? || campaign.validating? || campaign.scheduled?
 
     campaign.running!
 
