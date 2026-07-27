@@ -55,6 +55,14 @@ const selectedTemplate = computed(() =>
   templates.value.find(t => t.id === selectedTemplateId.value)
 );
 
+const templateVariables = computed(() => {
+  const tpl = selectedTemplate.value;
+  if (!tpl) return [];
+  const bodyText = tpl.body_text || tpl.content_snapshot?.body_text || '';
+  const matches = bodyText.match(/\{\{(\w+)\}\}/g) || [];
+  return [...new Set(matches.map(m => m.replace(/[\{\}]/g, '')))];
+});
+
 const isValidStep1 = computed(() => name.value.trim() && inboxId.value);
 const isValidStep2 = computed(() => selectedTemplateId.value);
 const isValidStep3 = computed(() =>
@@ -253,6 +261,28 @@ class="text-xs text-n-slate-10"
               </div>
             </div>
           </label>
+        </div>
+
+        <div
+          v-if="templateVariables.length"
+          class="mt-4 p-3 border border-n-weak rounded-lg bg-n-surface-2"
+        >
+          <p class="text-xs font-medium text-n-slate-11 mb-2">
+            Template Variables
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span
+              v-for="v in templateVariables"
+              :key="v"
+              class="px-2 py-0.5 text-xs font-mono rounded bg-n-alpha-2 text-n-slate-12"
+            >
+              {{ '{{' + v + '}}' }}
+            </span>
+          </div>
+          <p class="mt-2 text-xs text-n-slate-10">
+            For CSV: include a <code>params</code> column like
+            <code>{ "nome": "Lucas" }</code>
+          </p>
         </div>
       </template>
 
