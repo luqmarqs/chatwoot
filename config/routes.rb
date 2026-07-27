@@ -136,7 +136,9 @@ Rails.application.routes.draw do
           end
           resources :campaigns, only: [:index, :create, :show, :update, :destroy]
           namespace :whatsapp do
-            resources :bulk_campaigns, only: [:index, :create, :show, :update, :destroy]
+            resources :bulk_campaigns, only: [:index, :create, :show, :update, :destroy] do
+              resources :recipients, only: [:index], module: :bulk_campaigns, controller: 'bulk_campaign_recipients'
+            end
           end
           resources :dashboard_apps, only: [:index, :show, :create, :update, :destroy]
           namespace :channels do
