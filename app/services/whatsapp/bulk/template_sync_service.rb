@@ -4,20 +4,18 @@ module Whatsapp
       pattr_initialize [:account!]
 
       def perform
-        inboxes = account.inboxes.joins(:channel)
-                         .where(channel: { type: 'Channel::Whatsapp' })
-                         .where("channel->>'provider' = ?", 'whatsapp_cloud')
-
-        return [] if inboxes.empty?
+        channels = account.whatsapp_channels.where(provider: 'whatsapp_cloud')
+        return [] if channels.empty?
 
         templates = []
-        inboxes.find_each do |inbox|
-          channel = inbox.channel
+        channels.find_each do |channel|
           access_token = channel.provider_config&.dig('api_key')
           next if access_token.blank?
-          next if channel.provider_config&.dig('waba_id').blank?
 
-          api_templates = fetch_provider_templates(access_token, channel.provider_config['waba_id'])
+          business_account_id = channel.provider_config&.dig('business_account_id')
+          next if business_account_id.blank?
+
+          api_templates = fetch_provider_templates(access_token, business_account_id)
           next if api_templates.blank?
 
           api_templates.each do |t|

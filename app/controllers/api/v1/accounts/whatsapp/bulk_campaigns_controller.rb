@@ -97,7 +97,7 @@ class Api::V1::Accounts::Whatsapp::BulkCampaignsController < Api::V1::Accounts::
   private
 
   def ensure_feature_enabled
-    head :not_found unless Current.account.feature_enabled?('whatsapp_bulk_campaigns')
+    head :not_found unless Current.account.feature_enabled?('whatsapp_campaign')
   end
 
   def fetch_campaign
