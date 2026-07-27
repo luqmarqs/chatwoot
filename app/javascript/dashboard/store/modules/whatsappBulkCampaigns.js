@@ -2,6 +2,7 @@ import WhatsappBulkCampaignsAPI from 'dashboard/api/whatsappBulkCampaigns';
 
 export const state = {
   records: [],
+  recipients: [],
   uiFlags: {
     isFetching: false,
     isCreating: false,
@@ -12,6 +13,7 @@ export const state = {
 
 export const getters = {
   getAll: _state => _state.records,
+  getRecipients: _state => _state.recipients,
   getUIFlags: _state => _state.uiFlags,
 };
 
@@ -68,6 +70,16 @@ export const actions = {
       commit('SET_UI_FLAGS', { isSending: false });
     }
   },
+
+  async fetchRecipients({ commit }, campaignId) {
+    commit('SET_UI_FLAGS', { isFetching: true });
+    try {
+      const { data } = await WhatsappBulkCampaignsAPI.recipients(campaignId);
+      commit('SET_RECIPIENTS', data);
+    } finally {
+      commit('SET_UI_FLAGS', { isFetching: false });
+    }
+  },
 };
 
 export const mutations = {
@@ -87,6 +99,9 @@ export const mutations = {
   },
   DELETE_RECORD(_state, id) {
     _state.records = _state.records.filter(item => item.id !== id);
+  },
+  SET_RECIPIENTS(_state, recipients) {
+    _state.recipients = recipients;
   },
 };
 

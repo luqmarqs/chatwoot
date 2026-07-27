@@ -1,11 +1,13 @@
 import { frontendURL } from 'dashboard/helper/URLHelper.js';
-import { useWhatsAppOnly } from 'dashboard/composables/useWhatsAppOnly';
 
 import CampaignsPageRouteView from './pages/CampaignsPageRouteView.vue';
 import LiveChatCampaignsPage from './pages/LiveChatCampaignsPage.vue';
 import SMSCampaignsPage from './pages/SMSCampaignsPage.vue';
 import WhatsAppCampaignsPage from './pages/WhatsAppCampaignsPage.vue';
+import WhatsAppCampaignDetailPage from './pages/WhatsAppCampaignDetailPage.vue';
 import { FEATURE_FLAGS } from 'dashboard/featureFlags';
+
+const isWhatsAppOnly = () => window.chatwootConfig?.whatsappOnly === true;
 
 const meta = {
   featureFlag: FEATURE_FLAGS.CAMPAIGNS,
@@ -66,6 +68,15 @@ const campaignsRoutes = {
             featureFlag: FEATURE_FLAGS.WHATSAPP_CAMPAIGNS,
           },
           component: WhatsAppCampaignsPage,
+        },
+        {
+          path: 'whatsapp/:campaignId',
+          name: 'campaigns_whatsapp_detail',
+          meta: {
+            ...meta,
+            featureFlag: FEATURE_FLAGS.WHATSAPP_CAMPAIGNS,
+          },
+          component: WhatsAppCampaignDetailPage,
         },
       ],
     },

@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useStore, useMapGetter } from 'dashboard/composables/store';
+import { useRouter } from 'vue-router';
 import CampaignLayout from 'dashboard/components-next/Campaigns/CampaignLayout.vue';
 import BulkCampaignCreateDialog from 'dashboard/components-next/Campaigns/BulkCampaignCreateDialog.vue';
 import Spinner from 'dashboard/components-next/spinner/Spinner.vue';
@@ -9,6 +10,7 @@ import Button from 'dashboard/components-next/button/Button.vue';
 
 const { t } = useI18n();
 const store = useStore();
+const router = useRouter();
 const createDialog = ref(null);
 const sendingId = ref(null);
 
@@ -41,6 +43,10 @@ const send = async (campaign) => {
 };
 
 const canSend = (c) => ['draft', 'validating'].includes(c.status);
+
+const openDetail = (campaign) => {
+  router.push({ name: 'campaigns_whatsapp_detail', params: { campaignId: campaign.id } });
+};
 </script>
 
 <template>
@@ -61,7 +67,8 @@ const canSend = (c) => ['draft', 'validating'].includes(c.status);
       <article
         v-for="campaign in campaigns"
         :key="campaign.id"
-        class="p-5 border rounded-xl border-n-weak bg-n-surface-2"
+        class="p-5 border rounded-xl border-n-weak bg-n-surface-2 cursor-pointer hover:border-n-blue-6 transition-colors"
+        @click="openDetail(campaign)"
       >
         <div class="flex items-start justify-between gap-4">
           <div class="flex-1 min-w-0">

@@ -4,7 +4,9 @@ class Api::V1::Accounts::Whatsapp::BulkCampaignsController < Api::V1::Accounts::
   before_action :check_authorization
 
   def index
-    @campaigns = Current.account.whatsapp_bulk_campaigns.order(created_at: :desc)
+    @campaigns = Current.account.whatsapp_bulk_campaigns
+                        .includes(:recipients)
+                        .order(created_at: :desc)
   end
 
   def show; end

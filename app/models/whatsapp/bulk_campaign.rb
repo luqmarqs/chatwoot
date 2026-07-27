@@ -30,6 +30,54 @@ module Whatsapp
       validating!
     end
 
+    def total_recipients
+      recipients.size
+    end
+
+    def pending_count
+      recipients_count_by_status('pending')
+    end
+
+    def queued_count
+      recipients_count_by_status('queued')
+    end
+
+    def processing_count
+      recipients_count_by_status('processing')
+    end
+
+    def sent_count
+      recipients_count_by_status('sent')
+    end
+
+    def delivered_count
+      recipients_count_by_status('delivered')
+    end
+
+    def read_count
+      recipients_count_by_status('read')
+    end
+
+    def replied_count
+      recipients_count_by_status('replied')
+    end
+
+    def failed_count
+      recipients_count_by_status('failed')
+    end
+
+    def skipped_count
+      recipients_count_by_status('skipped')
+    end
+
+    def cancelled_count
+      recipients_count_by_status('cancelled')
+    end
+
+    def succeeded_count
+      sent_count + delivered_count + read_count + replied_count
+    end
+
     private
 
     def inbox_belongs_to_campaign_account
@@ -59,6 +107,12 @@ module Whatsapp
 
       channel = inbox.channel
       channel.is_a?(Channel::Whatsapp) && channel.provider == 'whatsapp_cloud'
+    end
+
+    private
+
+    def recipients_count_by_status(status)
+      recipients.count { |r| r.status == status }
     end
   end
 end
