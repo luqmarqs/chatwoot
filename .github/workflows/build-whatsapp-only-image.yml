@@ -2,6 +2,9 @@ name: Build WhatsApp-only image
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feature/whatsapp-bulk-campaigns
 
 permissions:
   contents: read
