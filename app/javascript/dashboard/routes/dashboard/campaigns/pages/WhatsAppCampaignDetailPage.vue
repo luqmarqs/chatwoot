@@ -115,13 +115,7 @@ const stats = computed(() => {
           <p class="text-xs text-n-slate-10">{{ r.recipient_key }}</p>
         </div>
         <span
-          class="px-2 py-0.5 text-xs font-medium rounded-full"
-:class="[
-          :class="
-[statusColors[r.status]
-||
-'bg-n-alpha-2
-text-n-slate-12']"
+          :class="['px-2 py-0.5 text-xs font-medium rounded-full', statusColors[r.status] || 'bg-n-alpha-2 text-n-slate-12']"
         >
           {{ r.status }}
         </span>
