@@ -59,7 +59,7 @@ const recipientStatusColors = {
   sent: 'bg-n-blue-3 text-n-blue-11',
   delivered: 'bg-n-green-4 text-n-green-11',
   read: 'bg-n-green-4 text-n-green-11',
-  replied: 'bg-n-green-4 text-n-green-11',
+  replied: 'bg-n-purple-4 text-n-purple-11',
   failed: 'bg-n-red-3 text-n-red-11',
   skipped: 'bg-n-slate-3 text-n-slate-10',
   cancelled: 'bg-n-slate-3 text-n-slate-10',
@@ -79,6 +79,7 @@ const statusTabs = [
   { key: 'sent', label: t('CAMPAIGN.WHATSAPP.DETAIL.FILTER.SENT') },
   { key: 'delivered', label: t('CAMPAIGN.WHATSAPP.DETAIL.FILTER.DELIVERED') },
   { key: 'read', label: t('CAMPAIGN.WHATSAPP.DETAIL.FILTER.READ') },
+  { key: 'replied', label: t('CAMPAIGN.WHATSAPP.DETAIL.FILTER.REPLIED') },
   { key: 'failed', label: t('CAMPAIGN.WHATSAPP.DETAIL.FILTER.FAILED') },
 ];
 
@@ -104,13 +105,10 @@ const counts = computed(() => {
   return {
     all: recs.length,
     pending: recs.filter(r => r.status === 'pending').length,
-    sent: recs.filter(r =>
-      ['sent', 'delivered', 'read', 'replied'].includes(r.status)
-    ).length,
-    delivered: recs.filter(r =>
-      ['delivered', 'read', 'replied'].includes(r.status)
-    ).length,
-    read: recs.filter(r => ['read', 'replied'].includes(r.status)).length,
+    sent: recs.filter(r => r.status === 'sent').length,
+    delivered: recs.filter(r => r.status === 'delivered').length,
+    read: recs.filter(r => r.status === 'read').length,
+    replied: recs.filter(r => r.status === 'replied').length,
     failed: recs.filter(r => r.status === 'failed').length,
   };
 });
@@ -294,7 +292,7 @@ const toggleExpand = id => {
       <!-- Campaign stats -->
       <div
         v-if="!['draft', 'validating'].includes(campaign.status)"
-        class="grid grid-cols-4 gap-3 mt-4 pt-4 border-t border-n-weak"
+        class="grid grid-cols-5 gap-3 mt-4 pt-4 border-t border-n-weak"
       >
         <div class="text-center">
           <p class="text-xl font-bold text-n-slate-12">
@@ -328,6 +326,14 @@ const toggleExpand = id => {
             {{ t('CAMPAIGN.WHATSAPP.DETAIL.HEADER.STATS_FAILED') }}
           </p>
         </div>
+        <div class="text-center">
+          <p class="text-xl font-bold text-n-purple-11">
+            {{ campaign.replied_count || 0 }}
+          </p>
+          <p class="text-xs text-n-slate-10">
+            {{ t('CAMPAIGN.WHATSAPP.DETAIL.HEADER.STATS_REPLIED') }}
+          </p>
+        </div>
       </div>
     </div>
 
@@ -340,7 +346,7 @@ const toggleExpand = id => {
     </div>
 
     <!-- Recipient Stats -->
-    <div v-if="recipients.length" class="grid grid-cols-6 gap-3 mb-4">
+    <div v-if="recipients.length" class="grid grid-cols-7 gap-3 mb-4">
       <div
         v-for="tab in statusTabs"
         :key="tab.key"

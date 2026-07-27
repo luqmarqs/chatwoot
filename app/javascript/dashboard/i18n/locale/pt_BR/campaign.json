@@ -258,7 +258,8 @@
           "STATS_TOTAL": "Total",
           "STATS_SENT": "Enviados",
           "STATS_PENDING": "Pendentes",
-          "STATS_FAILED": "Falhas"
+          "STATS_FAILED": "Falhas",
+          "STATS_REPLIED": "Respostas"
         },
         "SEARCH_PLACEHOLDER": "Buscar por telefone, chave ou erro...",
         "NO_RECIPIENTS": "Nenhum destinatário ainda",
@@ -280,6 +281,7 @@
           "SENT": "Enviados",
           "DELIVERED": "Entregues",
           "READ": "Lidos",
+          "REPLIED": "Respondidos",
           "FAILED": "Falhas"
         }
       },

@@ -257,7 +257,7 @@ const openDetail = campaign => {
             campaign.status &&
             !['draft', 'validating'].includes(campaign.status)
           "
-          class="grid grid-cols-4 gap-3 mt-4 pt-4 border-t border-n-weak"
+          class="grid grid-cols-5 gap-3 mt-4 pt-4 border-t border-n-weak"
         >
           <div class="text-center">
             <p class="text-lg font-semibold text-n-slate-12">
@@ -289,6 +289,14 @@ const openDetail = campaign => {
             </p>
             <p class="text-xs text-n-slate-10">
               {{ t('CAMPAIGN.WHATSAPP.DETAIL.HEADER.STATS_FAILED') }}
+            </p>
+          </div>
+          <div class="text-center">
+            <p class="text-lg font-semibold text-n-purple-11">
+              {{ campaign.replied_count || 0 }}
+            </p>
+            <p class="text-xs text-n-slate-10">
+              {{ t('CAMPAIGN.WHATSAPP.DETAIL.HEADER.STATS_REPLIED') }}
             </p>
           </div>
         </div>
