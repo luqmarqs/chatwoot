@@ -22,6 +22,12 @@ class Api::V1::Accounts::Whatsapp::BulkCampaignsController < Api::V1::Accounts::
     head :ok
   end
 
+  def send_campaign
+    @campaign.validate! if @campaign.draft?
+    Whatsapp::BulkCampaignSendJob.perform_later(@campaign.id)
+    head :accepted
+  end
+
   private
 
   def ensure_feature_enabled

@@ -21,6 +21,15 @@ module Whatsapp
     validate :inbox_is_whatsapp_cloud
     validate :queued_campaign_attributes_are_immutable, on: :update
 
+    def validate!
+      raise 'Campaign must be draft or validating' unless status.in?(%w[draft validating])
+      raise 'Template name is required' if provider_template_name.blank?
+      raise 'No recipients' if recipients.none?
+      raise 'Inbox is not WhatsApp Cloud' unless whatsapp_cloud?
+
+      validating!
+    end
+
     private
 
     def inbox_belongs_to_campaign_account
@@ -43,6 +52,13 @@ module Whatsapp
       return if (changes.keys & IMMUTABLE_AFTER_QUEUE).empty?
 
       errors.add(:base, 'campaign configuration cannot change after queueing')
+    end
+
+    def whatsapp_cloud?
+      return false if inbox.blank?
+
+      channel = inbox.channel
+      channel.is_a?(Channel::Whatsapp) && channel.provider == 'whatsapp_cloud'
     end
   end
 end
