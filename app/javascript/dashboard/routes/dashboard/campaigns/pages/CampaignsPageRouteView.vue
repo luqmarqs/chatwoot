@@ -1,14 +1,21 @@
 <script setup>
 import { onMounted } from 'vue';
 import { useStore } from 'dashboard/composables/store';
+import { useWhatsAppOnly } from 'dashboard/composables/useWhatsAppOnly';
 
 defineProps({
   keepAlive: { type: Boolean, default: true },
 });
 
 const store = useStore();
+const { isWhatsAppOnly } = useWhatsAppOnly();
 
 onMounted(() => {
+  if (isWhatsAppOnly.value) {
+    store.dispatch('whatsappBulkCampaigns/get');
+    return;
+  }
+
   store.dispatch('campaigns/get');
   store.dispatch('labels/get');
 });
