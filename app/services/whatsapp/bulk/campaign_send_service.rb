@@ -52,6 +52,8 @@ module Whatsapp
             consent_snapshot: { source: 'contact_sync', synced_at: Time.current.iso8601 }
           )
         end
+
+        Whatsapp::Bulk::ReconcileStatsJob.perform_later(campaign.id)
       end
 
       def throttled_send

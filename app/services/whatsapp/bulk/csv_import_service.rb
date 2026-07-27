@@ -43,6 +43,7 @@ module Whatsapp
         end
 
         campaign.update!(total_recipients: campaign.recipients.count)
+        Whatsapp::Bulk::ReconcileStatsJob.perform_later(campaign.id)
 
         { imported: imported, skipped: skipped, errors: errors }
       end

@@ -18,7 +18,8 @@ class Whatsapp::Bulk::ReconcileStatsJob < ApplicationJob
       replied_count: stats['replied'] || 0,
       failed_count: stats['failed'] || 0,
       skipped_count: stats['skipped'] || 0,
-      cancelled_count: stats['cancelled'] || 0
+      cancelled_count: stats['cancelled'] || 0,
+      succeeded_count: (stats['sent'] || 0) + (stats['delivered'] || 0) + (stats['read'] || 0) + (stats['replied'] || 0)
     )
   end
 end

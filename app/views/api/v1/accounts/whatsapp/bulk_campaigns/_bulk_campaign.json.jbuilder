@@ -28,6 +28,7 @@ json.delivered_count bulk_campaign.delivered_count
 json.read_count bulk_campaign.read_count
 json.replied_count bulk_campaign.replied_count
 json.failed_count bulk_campaign.failed_count
+json.succeeded_count bulk_campaign.succeeded_count
 json.skipped_count bulk_campaign.skipped_count
 json.cancelled_count bulk_campaign.cancelled_count
 json.created_at bulk_campaign.created_at
