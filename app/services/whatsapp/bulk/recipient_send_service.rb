@@ -14,6 +14,10 @@ module Whatsapp
           nil
         )
 
+        if message_id.blank?
+          raise 'send_template returned empty message_id'
+        end
+
         recipient.update!(
           status: :sent,
           sent_at: Time.current,
