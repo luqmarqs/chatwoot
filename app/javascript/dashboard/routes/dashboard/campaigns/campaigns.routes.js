@@ -1,4 +1,5 @@
 import { frontendURL } from 'dashboard/helper/URLHelper.js';
+import { useWhatsAppOnly } from 'dashboard/composables/useWhatsAppOnly';
 
 import CampaignsPageRouteView from './pages/CampaignsPageRouteView.vue';
 import LiveChatCampaignsPage from './pages/LiveChatCampaignsPage.vue';
@@ -15,6 +16,12 @@ const campaignsRoutes = {
   routes: [
     {
       path: frontendURL('accounts/:accountId/campaigns'),
+      redirect: () => {
+        if (isWhatsAppOnly.value) {
+          return { name: 'campaigns_whatsapp_index', params: to.params };
+        }
+        return { name: 'campaigns_ongoing_index', params: to.params };
+      },
       component: CampaignsPageRouteView,
       children: [
         {

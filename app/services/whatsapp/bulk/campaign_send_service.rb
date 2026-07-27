@@ -7,14 +7,26 @@ module Whatsapp
         validate!
         campaign.queued!
 
-        recipients.find_each do |recipient|
-          Whatsapp::Bulk::RecipientSendService.new(recipient: recipient).perform
+        if campaign.rate_limit_per_minute&.positive? && campaign.recipients.count > 10
+          throttled_send
+        else
+          direct_send
         end
 
         finalize_campaign
       end
 
       private
+
+      def throttled_send
+        Whatsapp::Bulk::RateLimiterService.new(campaign).throttle
+      end
+
+      def direct_send
+        recipients.find_each do |recipient|
+          Whatsapp::Bulk::RecipientSendService.new(recipient: recipient).perform
+        end
+      end
 
       def validate!
         raise 'Campaign is not in draft state' unless campaign.draft?

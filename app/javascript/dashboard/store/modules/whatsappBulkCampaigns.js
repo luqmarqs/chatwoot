@@ -57,6 +57,17 @@ export const actions = {
       commit('SET_UI_FLAGS', { isDeleting: false });
     }
   },
+
+  async send({ commit }, id) {
+    commit('SET_UI_FLAGS', { isSending: true });
+    try {
+      const { data } = await WhatsappBulkCampaignsAPI.send(id);
+      commit('UPDATE_RECORD', data);
+      return data;
+    } finally {
+      commit('SET_UI_FLAGS', { isSending: false });
+    }
+  },
 };
 
 export const mutations = {
