@@ -1,5 +1,6 @@
 module Whatsapp
   class BulkTemplate < ApplicationRecord
+    self.table_name = 'whatsapp_bulk_templates'
     STATUSES = %w[draft pending approved rejected].freeze
 
     belongs_to :account

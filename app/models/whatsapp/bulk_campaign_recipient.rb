@@ -1,5 +1,6 @@
 module Whatsapp
   class BulkCampaignRecipient < ApplicationRecord
+    self.table_name = 'whatsapp_bulk_campaign_recipients'
     STATUSES = %w[pending queued processing sent delivered read replied failed skipped cancelled].freeze
 
     belongs_to :whatsapp_bulk_campaign, class_name: '::Whatsapp::BulkCampaign'

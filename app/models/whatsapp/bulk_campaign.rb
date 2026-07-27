@@ -1,5 +1,6 @@
 module Whatsapp
   class BulkCampaign < ApplicationRecord
+    self.table_name = 'whatsapp_bulk_campaigns'
     STATUSES = %w[draft validating scheduled queued running paused completed completed_with_errors cancelled failed].freeze
     IMMUTABLE_AFTER_QUEUE = %w[inbox_id provider_template_name provider_template_language provider_template_category template_snapshot variable_mapping audience_definition consent_confirmation].freeze
 
