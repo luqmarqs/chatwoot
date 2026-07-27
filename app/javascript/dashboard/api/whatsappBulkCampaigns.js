@@ -6,6 +6,10 @@ class WhatsappBulkCampaignsAPI extends ApiClient {
     super('whatsapp/bulk_campaigns', { accountScoped: true });
   }
 
+  show(id) {
+    return axios.get(`${this.url}/${id}`);
+  }
+
   send(id) {
     return axios.post(`${this.url}/${id}/send`);
   }
@@ -35,12 +39,9 @@ class WhatsappBulkCampaignsAPI extends ApiClient {
   importRecipients(id, file) {
     const formData = new FormData();
     formData.append('file', file);
-    const accountId = window.location.pathname.split('/')[2];
-    return axios.post(
-      `/api/v1/accounts/${accountId}/whatsapp/bulk_campaigns/${id}/import_recipients`,
-      formData,
-      { headers: { 'Content-Type': 'multipart/form-data' } }
-    );
+    return axios.post(`${this.url}/${id}/import_recipients`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
   }
 
   exportCsv(id) {

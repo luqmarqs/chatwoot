@@ -140,6 +140,7 @@
     },
     "WHATSAPP": {
       "HEADER_TITLE": "Campanhas do WhatsApp",
+      "DETAIL_TITLE": "Detalhes da Campanha",
       "NEW_CAMPAIGN": "Criar campanha",
       "EMPTY_STATE": {
         "TITLE": "Nenhuma campanha do WhatsApp está disponível",
@@ -156,6 +157,35 @@
           "ON": "ativado"
         }
       },
+      "STATUS": {
+        "DRAFT": "Rascunho",
+        "VALIDATING": "Validando",
+        "SCHEDULED": "Agendada",
+        "QUEUED": "Na fila",
+        "RUNNING": "Enviando",
+        "PAUSED": "Pausada",
+        "COMPLETED": "Concluída",
+        "COMPLETED_WITH_ERRORS": "Concluída com erros",
+        "FAILED": "Falhou",
+        "CANCELLED": "Cancelada"
+      },
+      "ACTIONS": {
+        "SEND": "Enviar",
+        "PAUSE": "Pausar",
+        "RESUME": "Retomar",
+        "CANCEL": "Cancelar",
+        "BACK": "Voltar",
+        "EXPORT_CSV": "Exportar CSV",
+        "SYNC_TEMPLATES": "Sincronizar modelos",
+        "NEXT": "Próximo",
+        "PREVIOUS": "Anterior"
+      },
+      "WIZARD": {
+        "STEP1": "Informações",
+        "STEP2": "Modelo",
+        "STEP3": "Público",
+        "STEP4": "Configuração"
+      },
       "CREATE": {
         "TITLE": "Criar campanha do WhatsApp",
         "CANCEL_BUTTON_TEXT": "Cancelar",
@@ -165,6 +195,9 @@
             "LABEL": "Título",
             "PLACEHOLDER": "Por favor, digite o título da campanha",
             "ERROR": "Título é obrigatório"
+          },
+          "DESCRIPTION": {
+            "PLACEHOLDER": "Descrição (opcional)"
           },
           "INBOX": {
             "LABEL": "Selecione uma caixa de entrada",
@@ -179,13 +212,29 @@
             "PREVIEW_TITLE": "Processar {templateName}",
             "LANGUAGE": "Idioma",
             "CATEGORY": "Categorias",
-            "VARIABLES_LABEL": "Variáveis",
-            "VARIABLE_PLACEHOLDER": "Digite um valor para {variable}"
+            "VARIABLES_LABEL": "Variáveis do Modelo",
+            "VARIABLE_PLACEHOLDER": "Digite um valor para {variable}",
+            "VARIABLES_HINT": "Para CSV: inclua uma coluna \"params\" como {\"nome\": \"Lucas\"}",
+            "NO_TEMPLATES": "Nenhum modelo encontrado. Sincronize os modelos do WhatsApp primeiro.",
+            "CSV_UPLOAD": "Upload CSV",
+            "CONTACTS": "Contatos"
           },
           "AUDIENCE": {
             "LABEL": "Público",
             "PLACEHOLDER": "Selecionar etiquetas dos clientes",
-            "ERROR": "Público é necessário"
+            "ERROR": "Público é necessário",
+            "CALCULATING": "Calculando audiência...",
+            "MATCHED": "{total} destinatário(s) encontrado(s)",
+            "SAMPLE": "Amostra",
+            "CSV_HINT": "CSV com colunas: phone, name, params (opcional)"
+          },
+          "CONFIG": {
+            "RATE_LIMIT": "Limite de taxa (por minuto)",
+            "BATCH_SIZE": "Tamanho do lote",
+            "SEND_WINDOW": "Janela de envio",
+            "SEND_WINDOW_START": "Início",
+            "SEND_WINDOW_END": "Fim",
+            "ENABLE_SEND_WINDOW": "Ativar janela de envio"
           },
           "SCHEDULED_AT": {
             "LABEL": "Horário agendado",
@@ -201,6 +250,56 @@
             "ERROR_MESSAGE": "Houve um erro. Por favor, tente novamente."
           }
         }
+      },
+      "DETAIL": {
+        "HEADER": {
+          "TEMPLATE": "Modelo",
+          "RECIPIENTS": "Destinatários",
+          "STATS_TOTAL": "Total",
+          "STATS_SENT": "Enviados",
+          "STATS_PENDING": "Pendentes",
+          "STATS_FAILED": "Falhas"
+        },
+        "SEARCH_PLACEHOLDER": "Buscar por telefone, chave ou erro...",
+        "NO_RECIPIENTS": "Nenhum destinatário ainda",
+        "NO_MATCH": "Nenhum destinatário corresponde ao filtro atual.",
+        "EXPAND": {
+          "MESSAGE_ID": "ID da Mensagem",
+          "ATTEMPTS": "Tentativas",
+          "SENT": "Enviado",
+          "DELIVERED": "Entregue",
+          "READ": "Lido",
+          "FAILED": "Falhou",
+          "ERROR": "Erro",
+          "PARAMS": "Parâmetros do Template",
+          "TIME_DISPLAY": "—"
+        },
+        "FILTER": {
+          "ALL": "Todos",
+          "PENDING": "Pendentes",
+          "SENT": "Enviados",
+          "DELIVERED": "Entregues",
+          "READ": "Lidos",
+          "FAILED": "Falhas"
+        }
+      },
+      "API": {
+        "SEND_SUCCESS": "Campanha enviada com sucesso",
+        "SEND_ERROR": "Erro ao enviar campanha",
+        "PAUSE_SUCCESS": "Campanha pausada",
+        "PAUSE_ERROR": "Erro ao pausar campanha",
+        "RESUME_SUCCESS": "Campanha retomada",
+        "RESUME_ERROR": "Erro ao retomar campanha",
+        "CANCEL_SUCCESS": "Campanha cancelada",
+        "CANCEL_ERROR": "Erro ao cancelar campanha"
+      },
+      "CONFIRM": {
+        "CANCEL_TITLE": "Cancelar campanha?",
+        "CANCEL_DESC": "A campanha será interrompida. Destinatários pendentes não receberão a mensagem. Esta ação não pode ser desfeita.",
+        "CANCEL_CONFIRM": "Sim, cancelar",
+        "DELETE_TITLE": "Excluir campanha?",
+        "DELETE_DESC": "A exclusão é permanente e não pode ser revertida.",
+        "DELETE_CONFIRM": "Excluir"
       }
     },
     "CONFIRM_DELETE": {

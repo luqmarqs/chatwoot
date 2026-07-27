@@ -1,12 +1,14 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useStore, useMapGetter } from 'dashboard/composables/store';
 import { useRouter } from 'vue-router';
+import { useAlert } from 'dashboard/composables';
 import CampaignLayout from 'dashboard/components-next/Campaigns/CampaignLayout.vue';
 import BulkCampaignCreateDialog from 'dashboard/components-next/Campaigns/BulkCampaignCreateDialog.vue';
 import Spinner from 'dashboard/components-next/spinner/Spinner.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
+import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 
 const { t } = useI18n();
 const store = useStore();
@@ -14,6 +16,8 @@ const router = useRouter();
 const createDialog = ref(null);
 const sendingId = ref(null);
 const actionId = ref(null);
+const cancelTarget = ref(null);
+const cancelDialogRef = ref(null);
 
 const campaigns = useMapGetter('whatsappBulkCampaigns/getAll');
 const uiFlags = useMapGetter('whatsappBulkCampaigns/getUIFlags');
@@ -21,7 +25,48 @@ const isEmpty = computed(
   () => !uiFlags.value.isFetching && campaigns.value.length === 0
 );
 
-onMounted(() => store.dispatch('whatsappBulkCampaigns/get'));
+let pollInterval = null;
+const hasActiveCampaigns = computed(() =>
+  campaigns.value.some(c => ['queued', 'running'].includes(c.status))
+);
+
+const startPoll = () => {
+  if (pollInterval) return;
+  pollInterval = setInterval(() => {
+    if (hasActiveCampaigns.value) {
+      store.dispatch('whatsappBulkCampaigns/get');
+    }
+  }, 5000);
+};
+
+const stopPoll = () => {
+  if (pollInterval) {
+    clearInterval(pollInterval);
+    pollInterval = null;
+  }
+};
+
+onMounted(() => {
+  store.dispatch('whatsappBulkCampaigns/get');
+  startPoll();
+});
+
+onUnmounted(() => {
+  stopPoll();
+});
+
+const statusLabels = {
+  draft: 'CAMPAIGN.WHATSAPP.STATUS.DRAFT',
+  validating: 'CAMPAIGN.WHATSAPP.STATUS.VALIDATING',
+  scheduled: 'CAMPAIGN.WHATSAPP.STATUS.SCHEDULED',
+  queued: 'CAMPAIGN.WHATSAPP.STATUS.QUEUED',
+  running: 'CAMPAIGN.WHATSAPP.STATUS.RUNNING',
+  paused: 'CAMPAIGN.WHATSAPP.STATUS.PAUSED',
+  completed: 'CAMPAIGN.WHATSAPP.STATUS.COMPLETED',
+  completed_with_errors: 'CAMPAIGN.WHATSAPP.STATUS.COMPLETED_WITH_ERRORS',
+  failed: 'CAMPAIGN.WHATSAPP.STATUS.FAILED',
+  cancelled: 'CAMPAIGN.WHATSAPP.STATUS.CANCELLED',
+};
 
 const statusColors = {
   draft: 'bg-n-alpha-2 text-n-slate-12',
@@ -42,7 +87,10 @@ const send = async campaign => {
   sendingId.value = campaign.id;
   try {
     await store.dispatch('whatsappBulkCampaigns/send', campaign.id);
+    useAlert(t('CAMPAIGN.WHATSAPP.API.SEND_SUCCESS'));
     refresh();
+  } catch {
+    useAlert(t('CAMPAIGN.WHATSAPP.API.SEND_ERROR'));
   } finally {
     sendingId.value = null;
   }
@@ -52,10 +100,27 @@ const doAction = async (action, campaign) => {
   actionId.value = campaign.id;
   try {
     await store.dispatch(`whatsappBulkCampaigns/${action}`, campaign.id);
+    const key = action.toUpperCase();
+    useAlert(t(`CAMPAIGN.WHATSAPP.API.${key}_SUCCESS`));
     refresh();
+  } catch {
+    const key = action.toUpperCase();
+    useAlert(t(`CAMPAIGN.WHATSAPP.API.${key}_ERROR`));
   } finally {
     actionId.value = null;
   }
+};
+
+const confirmCancel = campaign => {
+  cancelTarget.value = campaign;
+  cancelDialogRef.value?.open();
+};
+
+const handleCancelConfirm = async () => {
+  if (!cancelTarget.value) return;
+  await doAction('cancel', cancelTarget.value);
+  cancelDialogRef.value?.close();
+  cancelTarget.value = null;
 };
 
 const canSend = c => ['draft', 'validating'].includes(c.status);
@@ -84,6 +149,17 @@ const openDetail = campaign => {
     <template #action>
       <BulkCampaignCreateDialog ref="createDialog" />
     </template>
+
+    <!-- Cancel confirmation -->
+    <Dialog
+      ref="cancelDialogRef"
+      type="alert"
+      :title="t('CAMPAIGN.WHATSAPP.CONFIRM.CANCEL_TITLE')"
+      :description="t('CAMPAIGN.WHATSAPP.CONFIRM.CANCEL_DESC')"
+      :confirm-button-label="t('CAMPAIGN.WHATSAPP.CONFIRM.CANCEL_CONFIRM')"
+      @confirm="handleCancelConfirm"
+    />
+
     <div v-if="uiFlags.isFetching" class="flex justify-center py-12">
       <Spinner />
     </div>
@@ -115,7 +191,7 @@ const openDetail = campaign => {
                     'bg-n-alpha-2 text-n-slate-12',
                 ]"
               >
-                {{ campaign.status }}
+                {{ t(statusLabels[campaign.status] || campaign.status) }}
               </span>
             </div>
             <p
@@ -128,13 +204,16 @@ const openDetail = campaign => {
               <span v-if="campaign.provider_template_name">{{
                 campaign.provider_template_name
               }}</span>
-              <span v-if="campaign.total_recipients">• {{ campaign.total_recipients }} recipients</span>
+              <span v-if="campaign.total_recipients"
+                >• {{ t('CAMPAIGN.WHATSAPP.DETAIL.HEADER.RECIPIENTS') }}:
+                {{ campaign.total_recipients }}</span
+              >
             </div>
           </div>
           <div class="flex gap-1" @click.stop>
             <Button
               v-if="canSend(campaign)"
-              label="Send"
+              :label="t('CAMPAIGN.WHATSAPP.ACTIONS.SEND')"
               color="blue"
               size="sm"
               :is-loading="sendingId === campaign.id"
@@ -142,7 +221,7 @@ const openDetail = campaign => {
             />
             <Button
               v-if="canPause(campaign)"
-              label="Pause"
+              :label="t('CAMPAIGN.WHATSAPP.ACTIONS.PAUSE')"
               color="yellow"
               size="sm"
               variant="outline"
@@ -151,7 +230,7 @@ const openDetail = campaign => {
             />
             <Button
               v-if="canResume(campaign)"
-              label="Resume"
+              :label="t('CAMPAIGN.WHATSAPP.ACTIONS.RESUME')"
               color="green"
               size="sm"
               variant="outline"
@@ -160,15 +239,18 @@ const openDetail = campaign => {
             />
             <Button
               v-if="canCancel(campaign)"
-              label="Cancel"
+              :label="t('CAMPAIGN.WHATSAPP.ACTIONS.CANCEL')"
               color="red"
               size="sm"
               variant="outline"
-              :is-loading="actionId === campaign.id"
-              @click="doAction('cancel', campaign)"
+              :is-loading="
+                actionId === campaign.id && cancelTarget?.id === campaign.id
+              "
+              @click="confirmCancel(campaign)"
             />
           </div>
         </div>
+
         <!-- Stats row for active/completed campaigns -->
         <div
           v-if="
@@ -181,25 +263,33 @@ const openDetail = campaign => {
             <p class="text-lg font-semibold text-n-slate-12">
               {{ campaign.total_recipients || 0 }}
             </p>
-            <p class="text-xs text-n-slate-10">Total</p>
+            <p class="text-xs text-n-slate-10">
+              {{ t('CAMPAIGN.WHATSAPP.DETAIL.HEADER.STATS_TOTAL') }}
+            </p>
           </div>
           <div class="text-center">
             <p class="text-lg font-semibold text-n-green-11">
               {{ campaign.succeeded_count || 0 }}
             </p>
-            <p class="text-xs text-n-slate-10">Enviado</p>
+            <p class="text-xs text-n-slate-10">
+              {{ t('CAMPAIGN.WHATSAPP.DETAIL.HEADER.STATS_SENT') }}
+            </p>
           </div>
           <div class="text-center">
             <p class="text-lg font-semibold text-n-slate-10">
               {{ campaign.pending_count || 0 }}
             </p>
-            <p class="text-xs text-n-slate-10">Pendente</p>
+            <p class="text-xs text-n-slate-10">
+              {{ t('CAMPAIGN.WHATSAPP.DETAIL.HEADER.STATS_PENDING') }}
+            </p>
           </div>
           <div class="text-center">
             <p class="text-lg font-semibold text-n-red-11">
               {{ campaign.failed_count || 0 }}
             </p>
-            <p class="text-xs text-n-slate-10">Falha</p>
+            <p class="text-xs text-n-slate-10">
+              {{ t('CAMPAIGN.WHATSAPP.DETAIL.HEADER.STATS_FAILED') }}
+            </p>
           </div>
         </div>
       </article>

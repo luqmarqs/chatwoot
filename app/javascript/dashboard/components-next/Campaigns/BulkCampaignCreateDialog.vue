@@ -48,11 +48,11 @@ const whatsappInboxes = computed(() =>
 );
 
 const approvedTemplates = computed(() =>
-  templates.value.filter(t => t.status === 'approved')
+  templates.value.filter(tmpl => tmpl.status === 'approved')
 );
 
 const selectedTemplate = computed(() =>
-  templates.value.find(t => t.id === selectedTemplateId.value)
+  templates.value.find(tmpl => tmpl.id === selectedTemplateId.value)
 );
 
 const templateVariables = computed(() => {
@@ -60,13 +60,15 @@ const templateVariables = computed(() => {
   if (!tpl) return [];
   const bodyText = tpl.body_text || tpl.content_snapshot?.body_text || '';
   const matches = bodyText.match(/\{\{(\w+)\}\}/g) || [];
-  return [...new Set(matches.map(m => m.replace(/[\{\}]/g, '')))];
+  return [...new Set(matches.map(m => m.replace(/[{}]/g, '')))];
 });
 
 const isValidStep1 = computed(() => name.value.trim() && inboxId.value);
 const isValidStep2 = computed(() => selectedTemplateId.value);
 const isValidStep3 = computed(() =>
-  audienceType.value === 'csv' ? csvFile.value : selectedContactIds.value.length > 0
+  audienceType.value === 'csv'
+    ? csvFile.value
+    : selectedContactIds.value.length > 0
 );
 
 onMounted(() => {
@@ -81,10 +83,20 @@ const open = () => {
 const close = () => dialogRef.value?.close();
 
 const nextStep = () => {
-  if (step.value < TOTAL_STEPS) step.value++;
+  if (step.value < TOTAL_STEPS) step.value += 1;
 };
 const prevStep = () => {
-  if (step.value > 1) step.value--;
+  if (step.value > 1) step.value -= 1;
+};
+
+const buildAudienceDefinition = () => {
+  if (
+    audienceType.value === 'contacts' &&
+    selectedContactIds.value.length > 0
+  ) {
+    return { contact_ids: selectedContactIds.value };
+  }
+  return {};
 };
 
 const fetchAudiencePreview = useDebounceFn(async () => {
@@ -104,16 +116,13 @@ const fetchAudiencePreview = useDebounceFn(async () => {
   }
 }, 500);
 
-const buildAudienceDefinition = () => {
-  if (audienceType.value === 'contacts' && selectedContactIds.value.length > 0) {
-    return { contact_ids: selectedContactIds.value };
-  }
-  return {};
-};
-
-watch([audienceType, selectedContactIds], () => {
-  fetchAudiencePreview();
-}, { deep: true });
+watch(
+  [audienceType, selectedContactIds],
+  () => {
+    fetchAudiencePreview();
+  },
+  { deep: true }
+);
 
 const create = async () => {
   if (!isValidStep1.value || !isValidStep2.value) return;
@@ -161,7 +170,12 @@ const create = async () => {
 
 defineExpose({ open });
 
-const stepLabels = ['Campaign Info', 'Template', 'Audience', 'Config'];
+const stepLabels = [
+  t('CAMPAIGN.WHATSAPP.WIZARD.STEP1'),
+  t('CAMPAIGN.WHATSAPP.WIZARD.STEP2'),
+  t('CAMPAIGN.WHATSAPP.WIZARD.STEP3'),
+  t('CAMPAIGN.WHATSAPP.WIZARD.STEP4'),
+];
 </script>
 
 <!-- eslint-disable vue/no-bare-strings-in-template -->
@@ -227,7 +241,7 @@ const stepLabels = ['Campaign Info', 'Template', 'Audience', 'Config'];
           v-if="templates.length === 0"
           class="py-4 text-center text-sm text-n-slate-11"
         >
-          No templates. Sync from WhatsApp first.
+          {{ t('CAMPAIGN.WHATSAPP.CREATE.FORM.TEMPLATE.NO_TEMPLATES') }}
         </div>
         <div v-else class="grid gap-2 max-h-64 overflow-y-auto">
           <label
@@ -255,9 +269,9 @@ const stepLabels = ['Campaign Info', 'Template', 'Audience', 'Config'];
               </p>
               <div class="flex gap-2 mt-1">
                 <span class="text-xs text-n-slate-10">{{ tpl.language }}</span>
-                <span v-if="tpl.category"
-class="text-xs text-n-slate-10"
-                  >• {{ tpl.category }}</span>
+                <span v-if="tpl.category" class="text-xs text-n-slate-10">
+                  • {{ tpl.category }}
+                </span>
               </div>
             </div>
           </label>
@@ -268,7 +282,7 @@ class="text-xs text-n-slate-10"
           class="mt-4 p-3 border border-n-weak rounded-lg bg-n-surface-2"
         >
           <p class="text-xs font-medium text-n-slate-11 mb-2">
-            Template Variables
+            {{ t('CAMPAIGN.WHATSAPP.CREATE.FORM.TEMPLATE.VARIABLES_LABEL') }}
           </p>
           <div class="flex flex-wrap gap-2">
             <span
@@ -280,8 +294,7 @@ class="text-xs text-n-slate-10"
             </span>
           </div>
           <p class="mt-2 text-xs text-n-slate-10">
-            For CSV: include a <code>params</code> column like
-            <code>{ "nome": "Lucas" }</code>
+            {{ t('CAMPAIGN.WHATSAPP.CREATE.FORM.TEMPLATE.VARIABLES_HINT') }}
           </p>
         </div>
       </template>
@@ -290,14 +303,14 @@ class="text-xs text-n-slate-10"
       <template v-if="step === 3">
         <div class="flex gap-2">
           <Button
-            label="CSV Upload"
+            :label="t('CAMPAIGN.WHATSAPP.CREATE.FORM.TEMPLATE.CSV_UPLOAD')"
             :color="audienceType === 'csv' ? 'blue' : 'slate'"
             size="sm"
             variant="outline"
             @click="audienceType = 'csv'"
           />
           <Button
-            label="Contacts"
+            :label="t('CAMPAIGN.WHATSAPP.CREATE.FORM.TEMPLATE.CONTACTS')"
             :color="audienceType === 'contacts' ? 'blue' : 'slate'"
             size="sm"
             variant="outline"
@@ -313,7 +326,7 @@ class="text-xs text-n-slate-10"
             @change="csvFile = $event.target.files[0]"
           />
           <p class="mt-1 text-xs text-n-slate-10">
-            CSV with columns: phone, name, params (optional)
+            {{ t('CAMPAIGN.WHATSAPP.CREATE.FORM.AUDIENCE.CSV_HINT') }}
           </p>
         </div>
 
@@ -325,20 +338,25 @@ class="text-xs text-n-slate-10"
           v-if="isPreviewLoading"
           class="mt-3 py-2 text-center text-sm text-n-slate-10"
         >
-          Calculating audience...
+          {{ t('CAMPAIGN.WHATSAPP.CREATE.FORM.AUDIENCE.CALCULATING') }}
         </div>
         <div
           v-else-if="audiencePreview"
           class="mt-3 p-3 border border-n-weak rounded-lg bg-n-surface-2"
         >
           <p class="text-sm font-medium text-n-slate-12">
-            {{ audiencePreview.total }} recipient(s) matched
+            {{
+              t('CAMPAIGN.WHATSAPP.CREATE.FORM.AUDIENCE.MATCHED', {
+                total: audiencePreview.total,
+              })
+            }}
           </p>
           <p
             v-if="audiencePreview.sample?.length"
             class="text-xs text-n-slate-10 mt-1"
           >
-            Sample: {{ audiencePreview.sample.map(s => s.name || s.phone).join(', ') }}
+            {{ t('CAMPAIGN.WHATSAPP.CREATE.FORM.AUDIENCE.SAMPLE') }}:
+            {{ audiencePreview.sample.map(s => s.name || s.phone).join(', ') }}
           </p>
         </div>
       </template>
@@ -347,11 +365,15 @@ class="text-xs text-n-slate-10"
       <template v-if="step === 4">
         <div class="grid gap-3">
           <div>
-            <label class="text-xs font-medium text-n-slate-11">Rate limit (per minute)</label>
+            <label class="text-xs font-medium text-n-slate-11">{{
+              t('CAMPAIGN.WHATSAPP.CREATE.FORM.CONFIG.RATE_LIMIT')
+            }}</label>
             <Input v-model="rateLimit" type="number" placeholder="60" />
           </div>
           <div>
-            <label class="text-xs font-medium text-n-slate-11">Batch size</label>
+            <label class="text-xs font-medium text-n-slate-11">{{
+              t('CAMPAIGN.WHATSAPP.CREATE.FORM.CONFIG.BATCH_SIZE')
+            }}</label>
             <Input v-model="batchSize" type="number" placeholder="10" />
           </div>
           <label class="flex items-center gap-2 cursor-pointer">
@@ -360,15 +382,21 @@ class="text-xs text-n-slate-10"
               type="checkbox"
               class="rounded"
             />
-            <span class="text-sm text-n-slate-11">Enable send window</span>
+            <span class="text-sm text-n-slate-11">{{
+              t('CAMPAIGN.WHATSAPP.CREATE.FORM.CONFIG.ENABLE_SEND_WINDOW')
+            }}</span>
           </label>
           <div v-if="sendWindowEnabled" class="flex gap-3">
             <div class="flex-1">
-              <label class="text-xs font-medium text-n-slate-11">Start</label>
+              <label class="text-xs font-medium text-n-slate-11">{{
+                t('CAMPAIGN.WHATSAPP.CREATE.FORM.CONFIG.SEND_WINDOW_START')
+              }}</label>
               <Input v-model="sendWindowStart" type="time" />
             </div>
             <div class="flex-1">
-              <label class="text-xs font-medium text-n-slate-11">End</label>
+              <label class="text-xs font-medium text-n-slate-11">{{
+                t('CAMPAIGN.WHATSAPP.CREATE.FORM.CONFIG.SEND_WINDOW_END')
+              }}</label>
               <Input v-model="sendWindowEnd" type="time" />
             </div>
           </div>
@@ -377,7 +405,12 @@ class="text-xs text-n-slate-10"
     </div>
     <template #footer>
       <div class="flex justify-between w-full gap-3">
-        <Button v-if="step > 1" label="Back" variant="link" @click="prevStep" />
+        <Button
+          v-if="step > 1"
+          :label="t('CAMPAIGN.WHATSAPP.ACTIONS.PREVIOUS')"
+          variant="link"
+          @click="prevStep"
+        />
         <div class="flex gap-3 ml-auto">
           <Button
             :label="t('DIALOG.BUTTONS.CANCEL')"
@@ -388,7 +421,7 @@ class="text-xs text-n-slate-10"
             :label="
               step === TOTAL_STEPS
                 ? t('CAMPAIGN.WHATSAPP.CREATE.BUTTONS.CREATE')
-                : 'Next'
+                : t('CAMPAIGN.WHATSAPP.ACTIONS.NEXT')
             "
             type="submit"
             :disabled="

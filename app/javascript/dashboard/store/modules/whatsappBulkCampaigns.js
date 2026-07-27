@@ -2,6 +2,7 @@ import WhatsappBulkCampaignsAPI from 'dashboard/api/whatsappBulkCampaigns';
 
 export const state = {
   records: [],
+  currentCampaign: null,
   recipients: [],
   uiFlags: {
     isFetching: false,
@@ -13,6 +14,7 @@ export const state = {
 
 export const getters = {
   getAll: _state => _state.records,
+  getCurrentCampaign: _state => _state.currentCampaign,
   getRecipients: _state => _state.recipients,
   getUIFlags: _state => _state.uiFlags,
 };
@@ -23,6 +25,17 @@ export const actions = {
     try {
       const { data } = await WhatsappBulkCampaignsAPI.get();
       commit('SET_RECORDS', data);
+    } finally {
+      commit('SET_UI_FLAGS', { isFetching: false });
+    }
+  },
+
+  async fetchCampaign({ commit }, id) {
+    commit('SET_UI_FLAGS', { isFetching: true });
+    try {
+      const { data } = await WhatsappBulkCampaignsAPI.show(id);
+      commit('SET_CURRENT_CAMPAIGN', data);
+      return data;
     } finally {
       commit('SET_UI_FLAGS', { isFetching: false });
     }
@@ -63,8 +76,11 @@ export const actions = {
   async send({ commit }, id) {
     commit('SET_UI_FLAGS', { isSending: true });
     try {
-      const { data } = await WhatsappBulkCampaignsAPI.send(id);
+      await WhatsappBulkCampaignsAPI.send(id);
+      // Re-fetch the campaign since send returns head :accepted
+      const { data } = await WhatsappBulkCampaignsAPI.show(id);
       commit('UPDATE_RECORD', data);
+      commit('SET_CURRENT_CAMPAIGN', data);
       return data;
     } finally {
       commit('SET_UI_FLAGS', { isSending: false });
@@ -75,6 +91,10 @@ export const actions = {
     commit('SET_UI_FLAGS', { isUpdating: true });
     try {
       await WhatsappBulkCampaignsAPI.pause(id);
+      // Re-fetch since pause returns head :ok
+      const { data } = await WhatsappBulkCampaignsAPI.show(id);
+      commit('UPDATE_RECORD', data);
+      commit('SET_CURRENT_CAMPAIGN', data);
     } finally {
       commit('SET_UI_FLAGS', { isUpdating: false });
     }
@@ -84,6 +104,9 @@ export const actions = {
     commit('SET_UI_FLAGS', { isUpdating: true });
     try {
       await WhatsappBulkCampaignsAPI.resume(id);
+      const { data } = await WhatsappBulkCampaignsAPI.show(id);
+      commit('UPDATE_RECORD', data);
+      commit('SET_CURRENT_CAMPAIGN', data);
     } finally {
       commit('SET_UI_FLAGS', { isUpdating: false });
     }
@@ -93,6 +116,9 @@ export const actions = {
     commit('SET_UI_FLAGS', { isUpdating: true });
     try {
       await WhatsappBulkCampaignsAPI.cancel(id);
+      const { data } = await WhatsappBulkCampaignsAPI.show(id);
+      commit('UPDATE_RECORD', data);
+      commit('SET_CURRENT_CAMPAIGN', data);
     } finally {
       commit('SET_UI_FLAGS', { isUpdating: false });
     }
@@ -111,7 +137,10 @@ export const actions = {
   async importRecipients({ commit }, { id, file }) {
     commit('SET_UI_FLAGS', { isImporting: true });
     try {
-      const { data } = await WhatsappBulkCampaignsAPI.importRecipients(id, file);
+      const { data } = await WhatsappBulkCampaignsAPI.importRecipients(
+        id,
+        file
+      );
       commit('UPDATE_RECORD', data);
       return data;
     } finally {
@@ -134,9 +163,18 @@ export const mutations = {
     _state.records = _state.records.map(item =>
       item.id === record.id ? record : item
     );
+    if (_state.currentCampaign && _state.currentCampaign.id === record.id) {
+      _state.currentCampaign = record;
+    }
   },
   DELETE_RECORD(_state, id) {
     _state.records = _state.records.filter(item => item.id !== id);
+    if (_state.currentCampaign && _state.currentCampaign.id === id) {
+      _state.currentCampaign = null;
+    }
+  },
+  SET_CURRENT_CAMPAIGN(_state, campaign) {
+    _state.currentCampaign = campaign;
   },
   SET_RECIPIENTS(_state, recipients) {
     _state.recipients = recipients;
