@@ -25,7 +25,7 @@ module Whatsapp
     def validate!
       raise 'Campaign must be draft or validating' unless status.in?(%w[draft validating])
       raise 'Template name is required' if provider_template_name.blank?
-      raise 'No recipients' if recipients.none?
+      raise 'No recipients or audience definition' if recipients.none? && audience_definition.blank?
       raise 'Inbox is not WhatsApp Cloud' unless whatsapp_cloud?
 
       validating!

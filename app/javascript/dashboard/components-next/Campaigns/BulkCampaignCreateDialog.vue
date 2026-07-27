@@ -1,10 +1,13 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
+import { useDebounceFn } from '@vueuse/core';
 import { useI18n } from 'vue-i18n';
 import { useStore, useMapGetter } from 'dashboard/composables/store';
 import Button from 'dashboard/components-next/button/Button.vue';
 import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 import Input from 'dashboard/components-next/input/Input.vue';
+import ContactPicker from './ContactPicker.vue';
+import WhatsappBulkCampaignsAPI from 'dashboard/api/whatsappBulkCampaigns';
 
 const { t } = useI18n();
 const store = useStore();
@@ -23,6 +26,9 @@ const selectedTemplateId = ref(null);
 // Step 3: Audience
 const audienceType = ref('csv');
 const csvFile = ref(null);
+const selectedContactIds = ref([]);
+const audiencePreview = ref(null);
+const isPreviewLoading = ref(false);
 
 // Step 4: Config
 const rateLimit = ref(60);
@@ -52,7 +58,7 @@ const selectedTemplate = computed(() =>
 const isValidStep1 = computed(() => name.value.trim() && inboxId.value);
 const isValidStep2 = computed(() => selectedTemplateId.value);
 const isValidStep3 = computed(() =>
-  audienceType.value === 'csv' ? csvFile.value : true
+  audienceType.value === 'csv' ? csvFile.value : selectedContactIds.value.length > 0
 );
 
 onMounted(() => {
@@ -73,6 +79,34 @@ const prevStep = () => {
   if (step.value > 1) step.value--;
 };
 
+const fetchAudiencePreview = useDebounceFn(async () => {
+  const definition = buildAudienceDefinition();
+  if (!Object.keys(definition).length) {
+    audiencePreview.value = null;
+    return;
+  }
+  isPreviewLoading.value = true;
+  try {
+    const { data } = await WhatsappBulkCampaignsAPI.audiencePreview(definition);
+    audiencePreview.value = data.audience;
+  } catch {
+    audiencePreview.value = null;
+  } finally {
+    isPreviewLoading.value = false;
+  }
+}, 500);
+
+const buildAudienceDefinition = () => {
+  if (audienceType.value === 'contacts' && selectedContactIds.value.length > 0) {
+    return { contact_ids: selectedContactIds.value };
+  }
+  return {};
+};
+
+watch([audienceType, selectedContactIds], () => {
+  fetchAudiencePreview();
+}, { deep: true });
+
 const create = async () => {
   if (!isValidStep1.value || !isValidStep2.value) return;
 
@@ -87,6 +121,7 @@ const create = async () => {
     provider_template_language: template?.language,
     provider_template_category: template?.category,
     template_snapshot: template?.content_snapshot || {},
+    audience_definition: buildAudienceDefinition(),
     rate_limit_per_minute: Number(rateLimit.value) || 60,
     batch_size: Number(batchSize.value) || 10,
     send_window_enabled: sendWindowEnabled.value,
@@ -108,6 +143,8 @@ const create = async () => {
   inboxId.value = null;
   selectedTemplateId.value = null;
   csvFile.value = null;
+  selectedContactIds.value = [];
+  audiencePreview.value = null;
   rateLimit.value = 60;
   batchSize.value = 10;
   sendWindowEnabled.value = false;
@@ -237,19 +274,42 @@ class="text-xs text-n-slate-10"
             @click="audienceType = 'contacts'"
           />
         </div>
-        <div v-if="audienceType === 'csv'">
+
+        <div v-if="audienceType === 'csv'" class="mt-3">
           <input
             type="file"
             accept=".csv"
-            class="w-full mt-2"
+            class="w-full"
             @change="csvFile = $event.target.files[0]"
           />
           <p class="mt-1 text-xs text-n-slate-10">
             CSV with columns: phone, name, params (optional)
           </p>
         </div>
-        <div v-else class="py-4 text-center text-sm text-n-slate-11">
-          Contact-based audience coming soon.
+
+        <div v-else class="mt-3">
+          <ContactPicker v-model="selectedContactIds" />
+        </div>
+
+        <div
+          v-if="isPreviewLoading"
+          class="mt-3 py-2 text-center text-sm text-n-slate-10"
+        >
+          Calculating audience...
+        </div>
+        <div
+          v-else-if="audiencePreview"
+          class="mt-3 p-3 border border-n-weak rounded-lg bg-n-surface-2"
+        >
+          <p class="text-sm font-medium text-n-slate-12">
+            {{ audiencePreview.total }} recipient(s) matched
+          </p>
+          <p
+            v-if="audiencePreview.sample?.length"
+            class="text-xs text-n-slate-10 mt-1"
+          >
+            Sample: {{ audiencePreview.sample.map(s => s.name || s.phone).join(', ') }}
+          </p>
         </div>
       </template>
 

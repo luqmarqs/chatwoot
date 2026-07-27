@@ -111,13 +111,7 @@ export const actions = {
   async importRecipients({ commit }, { id, file }) {
     commit('SET_UI_FLAGS', { isImporting: true });
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const { data } = await axios.post(
-        `api/v1/accounts/${window.location.pathname.split('/')[2]}/whatsapp/bulk_campaigns/${id}/import_recipients`,
-        formData,
-        { headers: { 'Content-Type': 'multipart/form-data' } }
-      );
+      const { data } = await WhatsappBulkCampaignsAPI.importRecipients(id, file);
       commit('UPDATE_RECORD', data);
       return data;
     } finally {

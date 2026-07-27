@@ -19,8 +19,6 @@ module Whatsapp
         resolve_contacts.size
       end
 
-      private
-
       def resolve_contacts
         scope = account.contacts
 
@@ -43,6 +41,7 @@ module Whatsapp
 
         scope.distinct
       end
+
     end
   end
 end

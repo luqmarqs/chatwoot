@@ -4,6 +4,7 @@ module Whatsapp
       pattr_initialize [:campaign!]
 
       def perform
+        resolve_audience!
         validate!
         campaign.queued!
 
@@ -17,6 +18,29 @@ module Whatsapp
       end
 
       private
+
+      def resolve_audience!
+        return if campaign.audience_definition.blank?
+        return if campaign.recipients.exists?
+
+        contacts = Whatsapp::Bulk::AudienceSnapshotService.new(
+          account: campaign.account,
+          audience_definition: campaign.audience_definition
+        ).resolve_contacts
+
+        contacts.find_each do |contact|
+          next if contact.phone_number.blank?
+
+          campaign.recipients.create!(
+            account: campaign.account,
+            phone_number: contact.phone_number,
+            recipient_key: contact.phone_number,
+            status: :pending,
+            contact_id: contact.id,
+            consent_snapshot: { source: 'contact_sync', synced_at: Time.current.iso8601 }
+          )
+        end
+      end
 
       def throttled_send
         Whatsapp::Bulk::RateLimiterService.new(campaign).throttle
