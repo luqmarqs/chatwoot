@@ -276,7 +276,7 @@ class="text-xs text-n-slate-10"
               :key="v"
               class="px-2 py-0.5 text-xs font-mono rounded bg-n-alpha-2 text-n-slate-12"
             >
-              {{ '{{' + v + '}}' }}
+              &#123;&#123;{{ v }}&#125;&#125;
             </span>
           </div>
           <p class="mt-2 text-xs text-n-slate-10">
