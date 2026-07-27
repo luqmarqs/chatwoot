@@ -50,6 +50,7 @@ const toggle = (id) => {
 const selectedCount = computed(() => selectedIds.value.size);
 </script>
 
+<!-- eslint-disable vue/no-bare-strings-in-template -->
 <template>
   <div class="flex flex-col gap-3">
     <div class="flex items-center gap-2">

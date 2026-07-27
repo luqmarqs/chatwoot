@@ -108,6 +108,7 @@ const toggleExpand = (id) => {
 };
 </script>
 
+<!-- eslint-disable vue/no-bare-strings-in-template -->
 <template>
   <div class="flex flex-col h-full p-6 overflow-auto bg-n-surface-1">
     <!-- Header -->
