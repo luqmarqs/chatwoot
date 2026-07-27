@@ -10,6 +10,8 @@ module Whatsapp
 
     has_many :recipients, class_name: '::Whatsapp::BulkCampaignRecipient', dependent: :destroy_async,
                           foreign_key: :whatsapp_bulk_campaign_id
+    has_many :events, class_name: '::Whatsapp::BulkCampaignEvent', dependent: :destroy_async,
+                      foreign_key: :whatsapp_bulk_campaign_id
 
     enum :status, STATUSES.index_with(&:itself), validate: true
 
