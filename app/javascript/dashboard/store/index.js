@@ -49,6 +49,7 @@ import summaryReports from './modules/summaryReports';
 import teamMembers from './modules/teamMembers';
 import teams from './modules/teams';
 import userNotificationSettings from './modules/userNotificationSettings';
+import whatsappBulkCampaigns from './modules/whatsappBulkCampaigns';
 import webhooks from './modules/webhooks';
 import captainAgentSessions from './captain/agentSessions';
 import captainAssistants from './captain/assistant';
@@ -115,6 +116,7 @@ export default createStore({
     teamMembers,
     teams,
     userNotificationSettings,
+    whatsappBulkCampaigns,
     webhooks,
     captainAgentSessions,
     captainAssistants,
