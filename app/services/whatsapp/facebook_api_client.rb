@@ -21,6 +21,16 @@ class Whatsapp::FacebookApiClient
     handle_response(response, 'Token exchange failed')
   end
 
+  def fetch_templates(waba_id, limit: 100)
+    response = HTTParty.get(
+      "#{BASE_URI}/#{@api_version}/#{waba_id}/message_templates",
+      headers: request_headers,
+      query: { limit: limit, access_token: @access_token }
+    )
+
+    handle_response(response, 'Template fetch failed')
+  end
+
   def fetch_phone_numbers(waba_id)
     response = HTTParty.get(
       "#{BASE_URI}/#{@api_version}/#{waba_id}/phone_numbers",

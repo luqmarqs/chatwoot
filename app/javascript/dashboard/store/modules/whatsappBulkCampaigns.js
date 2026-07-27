@@ -71,6 +71,33 @@ export const actions = {
     }
   },
 
+  async pause({ commit }, id) {
+    commit('SET_UI_FLAGS', { isUpdating: true });
+    try {
+      await WhatsappBulkCampaignsAPI.pause(id);
+    } finally {
+      commit('SET_UI_FLAGS', { isUpdating: false });
+    }
+  },
+
+  async resume({ commit }, id) {
+    commit('SET_UI_FLAGS', { isUpdating: true });
+    try {
+      await WhatsappBulkCampaignsAPI.resume(id);
+    } finally {
+      commit('SET_UI_FLAGS', { isUpdating: false });
+    }
+  },
+
+  async cancel({ commit }, id) {
+    commit('SET_UI_FLAGS', { isUpdating: true });
+    try {
+      await WhatsappBulkCampaignsAPI.cancel(id);
+    } finally {
+      commit('SET_UI_FLAGS', { isUpdating: false });
+    }
+  },
+
   async fetchRecipients({ commit }, campaignId) {
     commit('SET_UI_FLAGS', { isFetching: true });
     try {
@@ -78,6 +105,23 @@ export const actions = {
       commit('SET_RECIPIENTS', data);
     } finally {
       commit('SET_UI_FLAGS', { isFetching: false });
+    }
+  },
+
+  async importRecipients({ commit }, { id, file }) {
+    commit('SET_UI_FLAGS', { isImporting: true });
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const { data } = await axios.post(
+        `api/v1/accounts/${window.location.pathname.split('/')[2]}/whatsapp/bulk_campaigns/${id}/import_recipients`,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
+      commit('UPDATE_RECORD', data);
+      return data;
+    } finally {
+      commit('SET_UI_FLAGS', { isImporting: false });
     }
   },
 };

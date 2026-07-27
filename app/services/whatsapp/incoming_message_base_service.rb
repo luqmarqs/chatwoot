@@ -44,6 +44,8 @@ class Whatsapp::IncomingMessageBaseService
       set_conversation
       create_messages
     end
+
+    Whatsapp::Bulk::ReplyAttributionService.new(contact: @contact, inbox: @inbox).perform if @contact.present?
   end
 
   def process_statuses

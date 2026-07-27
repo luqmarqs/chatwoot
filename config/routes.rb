@@ -139,9 +139,23 @@ Rails.application.routes.draw do
             resources :bulk_campaigns, only: [:index, :create, :show, :update, :destroy] do
               member do
                 post :send, action: :send_campaign
+                post :import_recipients
+                post :pause
+                post :resume
+                post :cancel
+                get :export_csv
+              end
+              collection do
+                post :audience_preview
               end
               resources :recipients, only: [:index, :create], module: :bulk_campaigns, controller: 'bulk_campaign_recipients'
             end
+            resources :bulk_templates, only: [:index, :create, :show, :update, :destroy] do
+              collection do
+                post :sync_from_provider
+              end
+            end
+            resource :account_health, only: [:show]
           end
           resources :dashboard_apps, only: [:index, :show, :create, :update, :destroy]
           namespace :channels do

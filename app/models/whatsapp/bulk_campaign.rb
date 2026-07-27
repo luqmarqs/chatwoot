@@ -78,6 +78,27 @@ module Whatsapp
       sent_count + delivered_count + read_count + replied_count
     end
 
+    def pause!
+      raise 'Can only pause a running campaign' unless running?
+
+      update!(status: :paused, paused_at: Time.current)
+      Whatsapp::Bulk::ReconcileStatsJob.perform_later(id)
+    end
+
+    def resume!
+      raise 'Can only resume a paused campaign' unless paused?
+
+      update!(status: :running, paused_at: nil)
+    end
+
+    def cancel!
+      raise 'Cannot cancel a completed or already cancelled campaign' if status.in?(%w[completed cancelled])
+
+      recipients.pending.update_all(status: :cancelled, cancelled_at: Time.current)
+      update!(status: :cancelled, cancelled_at: Time.current)
+      Whatsapp::Bulk::ReconcileStatsJob.perform_later(id)
+    end
+
     private
 
     def inbox_belongs_to_campaign_account

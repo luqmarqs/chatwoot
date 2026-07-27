@@ -4,7 +4,16 @@ module Whatsapp
       pattr_initialize [:params!]
 
       def perform
-        statuses.each { |status| process_status(status) }
+        affected_campaign_ids = Set.new
+
+        statuses.each do |status|
+          campaign_id = process_status(status)
+          affected_campaign_ids << campaign_id if campaign_id
+        end
+
+        affected_campaign_ids.each do |campaign_id|
+          Whatsapp::Bulk::ReconcileStatsJob.perform_later(campaign_id)
+        end
       end
 
       private
@@ -34,6 +43,7 @@ module Whatsapp
         return unless new_status
 
         update_recipient(recipient, new_status, status)
+        recipient.whatsapp_bulk_campaign_id
       end
 
       def find_recipient(message_id)

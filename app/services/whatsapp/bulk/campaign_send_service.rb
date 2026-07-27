@@ -44,7 +44,9 @@ module Whatsapp
       end
 
       def finalize_campaign
-        failed = campaign.recipients.where(status: :failed).count
+        Whatsapp::Bulk::ReconcileStatsJob.perform_now(campaign.id)
+
+        failed = campaign.reload.failed_count
 
         campaign.completed! if failed.zero?
         campaign.completed_with_errors! if failed.positive?

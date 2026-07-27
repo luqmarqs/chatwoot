@@ -166,6 +166,10 @@
             "PLACEHOLDER": "Please enter the title of campaign",
             "ERROR": "Title is required"
           },
+          "DESCRIPTION": {
+            "LABEL": "Description",
+            "PLACEHOLDER": "Describe your campaign"
+          },
           "INBOX": {
             "LABEL": "Select Inbox",
             "PLACEHOLDER": "Select Inbox",
@@ -185,7 +189,11 @@
           "AUDIENCE": {
             "LABEL": "Audience",
             "PLACEHOLDER": "Select the customer labels",
-            "ERROR": "Audience is required"
+            "ERROR": "Audience is required",
+            "CSV_UPLOAD": "Upload CSV",
+            "CSV_HINT": "CSV with columns: phone, name, params (optional)",
+            "FROM_CONTACTS": "From Contacts",
+            "CONTACTS_COMING_SOON": "Contact-based audience coming soon."
           },
           "SCHEDULED_AT": {
             "LABEL": "Scheduled time",
@@ -201,6 +209,18 @@
             "ERROR_MESSAGE": "There was an error. Please try again."
           }
         }
+      },
+      "TEMPLATES": {
+        "TITLE": "Message Templates",
+        "SYNC": "Sync from WhatsApp",
+        "EMPTY": "No templates yet",
+        "EMPTY_HINT": "Sync templates from WhatsApp or create a new one"
+      },
+      "ACTIONS": {
+        "SEND": "Send",
+        "PAUSE": "Pause",
+        "RESUME": "Resume",
+        "CANCEL": "Cancel"
       }
     },
     "CONFIRM_DELETE": {
