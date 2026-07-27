@@ -8,6 +8,9 @@ module Whatsapp
     belongs_to :created_by, class_name: 'User', optional: true
     belongs_to :updated_by, class_name: 'User', optional: true
 
+    has_many :recipients, class_name: '::Whatsapp::BulkCampaignRecipient', dependent: :destroy_async,
+                          foreign_key: :whatsapp_bulk_campaign_id
+
     enum :status, STATUSES.index_with(&:itself), validate: true
 
     validates :name, presence: true, length: { maximum: 255 }
