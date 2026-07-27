@@ -62,6 +62,7 @@ class Inbox < ApplicationRecord
   belongs_to :channel, polymorphic: true, dependent: :destroy
 
   has_many :campaigns, dependent: :destroy_async
+  has_many :whatsapp_bulk_campaigns, dependent: :destroy_async, class_name: '::Whatsapp::BulkCampaign'
   has_many :contact_inboxes, dependent: :destroy_async
   has_many :contacts, through: :contact_inboxes
 
