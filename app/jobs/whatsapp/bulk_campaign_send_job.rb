@@ -6,8 +6,7 @@ class Whatsapp::BulkCampaignSendJob < ApplicationJob
     return unless campaign
     return unless campaign.draft? || campaign.validating? || campaign.scheduled?
 
-    campaign.running!
-
+    campaign.validating! if campaign.draft?
     Whatsapp::Bulk::CampaignSendService.new(campaign: campaign).perform
   rescue StandardError => e
     Rails.logger.error "BulkCampaignSendJob ##{campaign_id} failed: #{e.message}"

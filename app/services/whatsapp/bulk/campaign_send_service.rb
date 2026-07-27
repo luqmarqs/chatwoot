@@ -29,7 +29,7 @@ module Whatsapp
       end
 
       def validate!
-        raise 'Campaign is not in draft or validating state' unless campaign.draft? || campaign.validating?
+        raise 'Campaign not in valid state' unless campaign.draft? || campaign.validating? || campaign.running?
         raise 'Inbox is not WhatsApp Cloud' unless whatsapp_cloud?
         raise 'No recipients' if campaign.recipients.none?
       end
