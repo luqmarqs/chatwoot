@@ -1,0 +1,25 @@
+name: Build WhatsApp-only image
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build --file docker/Dockerfile --tag chatwoot-whatsapp-only:${{ github.sha }} .
+      - name: Export image
+        run: docker save chatwoot-whatsapp-only:${{ github.sha }} | gzip -1 > chatwoot-whatsapp-only-${{ github.sha }}.tar.gz
+      - name: Upload deployable image
+        uses: actions/upload-artifact@v4
+        with:
+          name: chatwoot-whatsapp-only-${{ github.sha }}
+          path: chatwoot-whatsapp-only-${{ github.sha }}.tar.gz
+          retention-days: 7
+          if-no-files-found: error
