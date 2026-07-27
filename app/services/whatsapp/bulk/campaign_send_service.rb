@@ -31,12 +31,24 @@ module Whatsapp
         contacts.find_each do |contact|
           next if contact.phone_number.blank?
 
+          template_params = {}
+          if campaign.template_snapshot.present?
+            body_text = campaign.template_snapshot['body_text'] || campaign.template_snapshot['body'] || ''
+            param_names = body_text.scan(/\{\{(\w+)\}\}/).flatten
+            param_names.each do |pname|
+              if pname =~ /nome|name|first/i && contact.name.present?
+                template_params[pname] = contact.name.split.first
+              end
+            end
+          end
+
           campaign.recipients.create!(
             account: campaign.account,
             phone_number: contact.phone_number,
             recipient_key: contact.phone_number,
             status: :pending,
             contact_id: contact.id,
+            template_parameters: template_params,
             consent_snapshot: { source: 'contact_sync', synced_at: Time.current.iso8601 }
           )
         end
