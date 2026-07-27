@@ -4,6 +4,7 @@ module Whatsapp
     STATUSES = %w[pending queued processing sent delivered read replied failed skipped cancelled].freeze
 
     belongs_to :whatsapp_bulk_campaign, class_name: '::Whatsapp::BulkCampaign'
+    alias_method :campaign, :whatsapp_bulk_campaign
     belongs_to :account
     belongs_to :contact, optional: true
     belongs_to :contact_inbox, optional: true

@@ -49,12 +49,23 @@ module Whatsapp
       end
 
       def template_payload
-        params = recipient.template_parameters.transform_values(&:to_s)
+        params = recipient.template_parameters
+        components = []
+
+        if params.present?
+          components << {
+            type: 'body',
+            parameters: params.map { |key, value|
+              { type: 'text', parameter_name: key.to_s, text: value.to_s }
+            }
+          }
+        end
+
         {
           name: campaign.provider_template_name,
           namespace: campaign.provider_template_namespace,
           lang_code: campaign.provider_template_language,
-          parameters: params.values.map { |v| { type: 'text', text: v } }
+          parameters: components
         }
       end
     end
