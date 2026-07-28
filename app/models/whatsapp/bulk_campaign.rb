@@ -1,0 +1,90 @@
+module Whatsapp
+  class BulkCampaign < ApplicationRecord
+    self.table_name = 'whatsapp_bulk_campaigns'
+    STATUSES = %w[draft validating scheduled queued running paused completed completed_with_errors cancelled failed].freeze
+    IMMUTABLE_AFTER_QUEUE = %w[inbox_id provider_template_name provider_template_language provider_template_category template_snapshot variable_mapping audience_definition consent_confirmation].freeze
+
+    belongs_to :account
+    belongs_to :inbox
+    belongs_to :created_by, class_name: 'User', optional: true
+    belongs_to :updated_by, class_name: 'User', optional: true
+
+    has_many :recipients, class_name: '::Whatsapp::BulkCampaignRecipient', dependent: :destroy_async,
+                          foreign_key: :whatsapp_bulk_campaign_id
+    has_many :events, class_name: '::Whatsapp::BulkCampaignEvent', dependent: :destroy_async,
+                      foreign_key: :whatsapp_bulk_campaign_id
+
+    enum :status, STATUSES.index_with(&:itself), validate: true
+
+    validates :name, presence: true, length: { maximum: 255 }
+    validates :timezone, presence: true
+    validate :inbox_belongs_to_campaign_account
+    validate :inbox_is_whatsapp_cloud
+    validate :queued_campaign_attributes_are_immutable, on: :update
+
+    def validate!
+      raise 'Campaign must be draft or validating' unless status.in?(%w[draft validating])
+      raise 'Template name is required' if provider_template_name.blank?
+      raise 'No recipients or audience definition' if recipients.none? && audience_definition.blank?
+      raise 'Inbox is not WhatsApp Cloud' unless whatsapp_cloud?
+
+      validating!
+    end
+
+    def succeeded_count
+      read_attribute(:succeeded_count) || sent_count + delivered_count + read_count + replied_count
+    end
+
+    def pause!
+      raise 'Can only pause a running campaign' unless running?
+
+      update!(status: :paused, paused_at: Time.current)
+      Whatsapp::Bulk::ReconcileStatsJob.perform_later(id)
+    end
+
+    def resume!
+      raise 'Can only resume a paused campaign' unless paused?
+
+      update!(status: :running, paused_at: nil)
+    end
+
+    def cancel!
+      raise 'Cannot cancel a completed or already cancelled campaign' if status.in?(%w[completed cancelled])
+
+      recipients.pending.update_all(status: :cancelled, cancelled_at: Time.current)
+      update!(status: :cancelled, cancelled_at: Time.current)
+      Whatsapp::Bulk::ReconcileStatsJob.perform_later(id)
+    end
+
+    private
+
+    def inbox_belongs_to_campaign_account
+      return if inbox.blank? || account_id.blank? || inbox.account_id == account_id
+
+      errors.add(:inbox, 'must belong to the campaign account')
+    end
+
+    def inbox_is_whatsapp_cloud
+      return if inbox.blank?
+
+      channel = inbox.channel
+      return if channel.is_a?(Channel::Whatsapp) && channel.provider == 'whatsapp_cloud'
+
+      errors.add(:inbox, 'must be a WhatsApp Cloud inbox')
+    end
+
+    def queued_campaign_attributes_are_immutable
+      return unless status_before_last_save.in?(%w[queued running paused completed completed_with_errors cancelled failed])
+      return if (changes.keys & IMMUTABLE_AFTER_QUEUE).empty?
+
+      errors.add(:base, 'campaign configuration cannot change after queueing')
+    end
+
+    def whatsapp_cloud?
+      return false if inbox.blank?
+
+      channel = inbox.channel
+      channel.is_a?(Channel::Whatsapp) && channel.provider == 'whatsapp_cloud'
+    end
+  end
+end

@@ -506,6 +506,19 @@ RSpec.describe 'Inboxes API', type: :request do
         expect(response.body).to include('+123456789')
       end
 
+      it 'rejects a non-WhatsApp inbox when WhatsApp-only mode is enabled' do
+        with_modified_env WHATSAPP_ONLY: 'true' do
+          expect do
+            post "/api/v1/accounts/#{account.id}/inboxes",
+                 headers: admin.create_new_auth_token,
+                 params: valid_params,
+                 as: :json
+          end.not_to change(Inbox, :count)
+        end
+
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+
       it 'creates the webwidget inbox that allow messages after conversation is resolved' do
         post "/api/v1/accounts/#{account.id}/inboxes",
              headers: admin.create_new_auth_token,

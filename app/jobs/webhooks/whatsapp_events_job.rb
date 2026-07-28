@@ -27,11 +27,24 @@ class Webhooks::WhatsappEventsJob < MutexApplicationJob
   end
 
   def process_events(channel, params)
+    return process_status_events(channel, params) if status_event?(params)
+
     if message_echo_event?(params)
       handle_message_echo(channel, params)
     else
       handle_message_events(channel, params)
     end
+  end
+
+  def status_event?(params)
+    params.dig(:entry, 0, :changes, 0, :value, :statuses).present?
+  end
+
+  def process_status_events(channel, params)
+    Whatsapp::Bulk::WebhookStatusService.new(params: params).perform
+    # Also let the normal flow handle it in case there are message statuses
+    # that affect the conversation-based flow
+    handle_message_events(channel, params)
   end
 
   # Detects if the webhook is an SMB message echo event (message sent from WhatsApp Business app)

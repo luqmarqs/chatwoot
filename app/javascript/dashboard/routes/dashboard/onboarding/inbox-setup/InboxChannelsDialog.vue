@@ -4,6 +4,8 @@ import { useI18n } from 'vue-i18n';
 import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 import ChannelIcon from 'dashboard/components-next/icon/ChannelIcon.vue';
+import { useWhatsAppOnly } from 'dashboard/composables/useWhatsAppOnly';
+import { filterOnboardingChannelsForWhatsAppOnly } from '../../settings/inbox/helpers/channelList';
 import { CHANNEL_TYPES } from 'dashboard/helper/inbox';
 import { useChannelConnect } from './useChannelConnect';
 import { useChannelConfig } from './useChannelConfig';
@@ -21,6 +23,7 @@ const emit = defineEmits(['connected']);
 const { t } = useI18n();
 const { connectViaOAuth, connectWhatsapp } = useChannelConnect();
 const { isConfigured } = useChannelConfig();
+const { isWhatsAppOnly } = useWhatsAppOnly();
 
 // Maps the dialog's display types to the OAuth client key the flow expects.
 // Types without an entry (manual-setup channels) are no-ops for now.
@@ -51,19 +54,19 @@ const CARD_CLASS = {
 // installation credential are dropped so they don't show at all; deferred
 // (setupLater) channels stay since they aren't a configuration problem.
 const channelCards = computed(() =>
-  CHANNEL_LIST.filter(
-    channel => channel.setupLater || isConfigured(channel.type)
-  ).map(channel => {
-    const connected = isChannelConnected(props.inboxes, channel.inbox);
-    // Website inboxes are only auto-created during onboarding — there is no
-    // manual creation path, so an unconnected Website card defers rather than
-    // offering a click that can't do anything.
-    const availability =
-      channel.type === CHANNEL_TYPES.WEBSITE && !connected
-        ? 'setupLater'
-        : channelAvailability(channel);
-    return { ...channel, availability, connected };
-  })
+  filterOnboardingChannelsForWhatsAppOnly(CHANNEL_LIST, isWhatsAppOnly.value)
+    .filter(channel => channel.setupLater || isConfigured(channel.type))
+    .map(channel => {
+      const connected = isChannelConnected(props.inboxes, channel.inbox);
+      // Website inboxes are only auto-created during onboarding — there is no
+      // manual creation path, so an unconnected Website card defers rather than
+      // offering a click that can't do anything.
+      const availability =
+        channel.type === CHANNEL_TYPES.WEBSITE && !connected
+          ? 'setupLater'
+          : channelAvailability(channel);
+      return { ...channel, availability, connected };
+    })
 );
 
 const dialogRef = ref(null);

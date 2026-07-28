@@ -5,6 +5,8 @@ import { useAlert } from 'dashboard/composables';
 import { picoSearch } from '@scmmishra/pico-search';
 import Avatar from 'next/avatar/Avatar.vue';
 import { useAdmin } from 'dashboard/composables/useAdmin';
+import { useWhatsAppOnly } from 'dashboard/composables/useWhatsAppOnly';
+import { filterInboxesForWhatsAppOnly } from './helpers/channelList';
 import SettingsLayout from '../SettingsLayout.vue';
 import BaseSettingsHeader from '../components/BaseSettingsHeader.vue';
 import {
@@ -20,6 +22,7 @@ const getters = useStoreGetters();
 const store = useStore();
 const { t } = useI18n();
 const { isAdmin } = useAdmin();
+const { isWhatsAppOnly } = useWhatsAppOnly();
 
 const showDeletePopup = ref(false);
 const selectedInbox = ref({});
@@ -32,7 +35,12 @@ onActivated(() => {
 });
 
 const inboxesList = computed(() => {
-  return inboxes.value?.slice().sort((a, b) => a.name.localeCompare(b.name));
+  const visibleInboxes = filterInboxesForWhatsAppOnly(
+    inboxes.value || [],
+    isWhatsAppOnly.value
+  );
+
+  return visibleInboxes.slice().sort((a, b) => a.name.localeCompare(b.name));
 });
 
 const filteredInboxesList = computed(() => {

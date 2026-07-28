@@ -416,4 +416,48 @@ RSpec.describe Inbox do
       end
     end
   end
+
+  describe 'WhatsApp-only inbox creation' do
+    it 'rejects a new non-WhatsApp inbox when the mode is enabled' do
+      inbox = FactoryBot.build(:inbox, channel: Channel::WebWidget.new)
+
+      with_modified_env WHATSAPP_ONLY: 'true' do
+        expect(inbox).not_to be_valid
+        expect(inbox.errors[:channel]).to include('must use WhatsApp Cloud API')
+      end
+    end
+
+    it 'rejects a 360dialog WhatsApp inbox when the mode is enabled' do
+      inbox = FactoryBot.build(
+        :inbox,
+        channel: Channel::Whatsapp.new(provider: 'default')
+      )
+
+      with_modified_env WHATSAPP_ONLY: 'true' do
+        inbox.valid?
+        expect(inbox.errors[:channel]).to include('must use WhatsApp Cloud API')
+      end
+    end
+
+    it 'permits a WhatsApp Cloud inbox when the mode is enabled' do
+      inbox = FactoryBot.build(
+        :inbox,
+        channel: Channel::Whatsapp.new(provider: 'whatsapp_cloud')
+      )
+
+      with_modified_env WHATSAPP_ONLY: 'true' do
+        inbox.valid?
+        expect(inbox.errors[:channel]).to be_empty
+      end
+    end
+
+    it 'preserves non-WhatsApp inbox creation when the mode is disabled' do
+      inbox = FactoryBot.build(:inbox, channel: Channel::WebWidget.new)
+
+      with_modified_env WHATSAPP_ONLY: 'false' do
+        inbox.valid?
+        expect(inbox.errors[:channel]).to be_empty
+      end
+    end
+  end
 end

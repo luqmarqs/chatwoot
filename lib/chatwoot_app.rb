@@ -47,6 +47,10 @@ module ChatwootApp
     enterprise? && ENV.fetch('OPENSEARCH_URL', nil).present?
   end
 
+  def self.whatsapp_only?
+    ActiveModel::Type::Boolean.new.cast(ENV.fetch('WHATSAPP_ONLY', false))
+  end
+
   def self.otel_enabled?
     otel_provider = InstallationConfig.find_by(name: 'OTEL_PROVIDER')&.value
     secret_key = InstallationConfig.find_by(name: 'LANGFUSE_SECRET_KEY')&.value

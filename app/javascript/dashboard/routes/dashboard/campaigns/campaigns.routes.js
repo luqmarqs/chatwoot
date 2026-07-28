@@ -4,7 +4,12 @@ import CampaignsPageRouteView from './pages/CampaignsPageRouteView.vue';
 import LiveChatCampaignsPage from './pages/LiveChatCampaignsPage.vue';
 import SMSCampaignsPage from './pages/SMSCampaignsPage.vue';
 import WhatsAppCampaignsPage from './pages/WhatsAppCampaignsPage.vue';
+import WhatsAppCampaignDetailPage from './pages/WhatsAppCampaignDetailPage.vue';
+import WhatsAppTemplatesPage from './pages/WhatsAppTemplatesPage.vue';
+import WhatsAppCampaignSettings from './pages/WhatsAppCampaignSettings.vue';
 import { FEATURE_FLAGS } from 'dashboard/featureFlags';
+
+const isWhatsAppOnly = () => window.chatwootConfig?.whatsappOnly === true;
 
 const meta = {
   featureFlag: FEATURE_FLAGS.CAMPAIGNS,
@@ -15,6 +20,12 @@ const campaignsRoutes = {
   routes: [
     {
       path: frontendURL('accounts/:accountId/campaigns'),
+      redirect: () => {
+        if (isWhatsAppOnly.value) {
+          return { name: 'campaigns_whatsapp_index', params: to.params };
+        }
+        return { name: 'campaigns_ongoing_index', params: to.params };
+      },
       component: CampaignsPageRouteView,
       children: [
         {
@@ -59,6 +70,33 @@ const campaignsRoutes = {
             featureFlag: FEATURE_FLAGS.WHATSAPP_CAMPAIGNS,
           },
           component: WhatsAppCampaignsPage,
+        },
+        {
+          path: 'whatsapp/templates',
+          name: 'campaigns_whatsapp_templates',
+          meta: {
+            ...meta,
+            featureFlag: FEATURE_FLAGS.WHATSAPP_CAMPAIGNS,
+          },
+          component: WhatsAppTemplatesPage,
+        },
+        {
+          path: 'whatsapp/settings',
+          name: 'campaigns_whatsapp_settings',
+          meta: {
+            ...meta,
+            featureFlag: FEATURE_FLAGS.WHATSAPP_CAMPAIGNS,
+          },
+          component: WhatsAppCampaignSettings,
+        },
+        {
+          path: 'whatsapp/:campaignId',
+          name: 'campaigns_whatsapp_detail',
+          meta: {
+            ...meta,
+            featureFlag: FEATURE_FLAGS.WHATSAPP_CAMPAIGNS,
+          },
+          component: WhatsAppCampaignDetailPage,
         },
       ],
     },

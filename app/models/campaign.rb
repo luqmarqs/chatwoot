@@ -36,6 +36,7 @@ class Campaign < ApplicationRecord
   validates :title, presence: true
   validates :message, presence: true
   validate :validate_campaign_inbox
+  validate :validate_legacy_whatsapp_campaign
   validate :validate_url
   validate :prevent_completed_campaign_from_update, on: :update
   validate :sender_must_belong_to_account
@@ -106,6 +107,13 @@ class Campaign < ApplicationRecord
     return unless inbox
 
     errors.add :inbox, 'Unsupported Inbox type' unless ['Website', 'Twilio SMS', 'Sms', 'Whatsapp'].include? inbox.inbox_type
+  end
+
+  def validate_legacy_whatsapp_campaign
+    return unless inbox&.inbox_type == 'Whatsapp'
+    return if account.feature_enabled?(:whatsapp_campaign)
+
+    errors.add :inbox, 'legacy WhatsApp campaigns are disabled'
   end
 
   # TO-DO we clean up with better validations when campaigns evolve into more inboxes
