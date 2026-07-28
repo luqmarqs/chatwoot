@@ -50,22 +50,46 @@ class Api::V1::Accounts::Whatsapp::BulkCampaignsController < Api::V1::Accounts::
   def export_csv
     recipients = @campaign.recipients.order(:id)
     csv = CSV.generate(headers: true) do |rows|
-      rows << ['Phone', 'Name', 'Status', 'Sent At', 'Delivered At', 'Read At', 'Failed At', 'Failure Reason']
+      rows << ['Phone', 'Name', 'Status', 'Attempts', 'Sent At', 'Delivered At', 'Read At', 'Replied At', 'Failed At', 'Error Code', 'Failure Message', 'Provider Message ID']
       recipients.find_each do |r|
         rows << [
           r.phone_number,
           r.consent_snapshot&.dig('original_name') || r.recipient_key,
           r.status,
+          r.attempts_count || 0,
           r.sent_at,
           r.delivered_at,
           r.read_at,
+          r.replied_at,
           r.failed_at,
-          r.failure_message
+          r.error_code,
+          r.failure_message,
+          r.provider_message_id
         ]
       end
     end
 
     send_data csv, filename: "campaign_#{@campaign.id}_recipients.csv", type: 'text/csv'
+  end
+
+  def request_export
+    Whatsapp::Bulk::ExportJob.perform_later(@campaign.id)
+    render json: { message: 'Export enqueued. It will be available shortly.' }, status: :accepted
+  end
+
+  def download_export
+    export = @campaign.metadata&.dig('export')
+    unless export && File.exist?(export['path'].to_s)
+      render json: { error: 'No export available. Request one first via POST /export.' }, status: :not_found
+      return
+    end
+
+    if Time.parse(export['expires_at']) < Time.current
+      render json: { error: 'Export has expired. Request a new one.' }, status: :gone
+      return
+    end
+
+    send_file export['path'], filename: export['filename'], type: 'text/csv'
   end
 
   def audience_preview
@@ -85,13 +109,54 @@ class Api::V1::Accounts::Whatsapp::BulkCampaignsController < Api::V1::Accounts::
       return
     end
 
+    validation_error = Whatsapp::Bulk::CsvImportService.validate_file(file)
+    if validation_error
+      render json: validation_error, status: validation_error[:status]
+      return
+    end
+
+    result = Whatsapp::Bulk::CsvImportService.new(
+      campaign: @campaign,
+      csv_content: file.read,
+      account: Current.account,
+      file: file
+    ).perform
+
+    render json: { imported: result[:imported], skipped: result[:skipped], errors: result[:errors] }, status: :ok
+  end
+
+  def import_errors_csv
+    file = params[:file]
+    unless file
+      render json: { error: 'No CSV file provided' }, status: :unprocessable_entity
+      return
+    end
+
+    validation_error = Whatsapp::Bulk::CsvImportService.validate_file(file)
+    if validation_error
+      render json: validation_error, status: validation_error[:status]
+      return
+    end
+
     result = Whatsapp::Bulk::CsvImportService.new(
       campaign: @campaign,
       csv_content: file.read,
       account: Current.account
     ).perform
 
-    render json: { imported: result[:imported], skipped: result[:skipped], errors: result[:errors] }, status: :ok
+    if result[:errors].empty?
+      render json: { message: 'No errors found' }, status: :ok
+      return
+    end
+
+    csv = CSV.generate(headers: true) do |rows|
+      rows << ['Row', 'Error']
+      result[:errors].each do |err|
+        rows << [err[:row], err[:error]]
+      end
+    end
+
+    send_data csv, filename: "campaign_#{@campaign.id}_import_errors.csv", type: 'text/csv'
   end
 
   private

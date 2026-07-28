@@ -47,6 +47,14 @@ class WhatsappBulkCampaignsAPI extends ApiClient {
   exportCsv(id) {
     return axios.get(`${this.url}/${id}/export_csv`, { responseType: 'blob' });
   }
+
+  requestExport(id) {
+    return axios.post(`${this.url}/${id}/request_export`);
+  }
+
+  downloadExport(id) {
+    return axios.get(`${this.url}/${id}/download_export`, { responseType: 'blob' });
+  }
 }
 
 export default new WhatsappBulkCampaignsAPI();

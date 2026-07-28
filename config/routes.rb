@@ -140,10 +140,13 @@ Rails.application.routes.draw do
               member do
                 post :send, action: :send_campaign
                 post :import_recipients
+                post :import_errors_csv
                 post :pause
                 post :resume
                 post :cancel
                 get :export_csv
+                post :request_export
+                get :download_export
               end
               collection do
                 post :audience_preview
@@ -156,6 +159,7 @@ Rails.application.routes.draw do
               end
             end
             resource :account_health, only: [:show]
+            resource :campaign_settings, only: [:show, :update]
           end
           resources :dashboard_apps, only: [:index, :show, :create, :update, :destroy]
           namespace :channels do

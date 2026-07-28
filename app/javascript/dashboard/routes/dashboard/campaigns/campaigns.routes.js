@@ -6,6 +6,7 @@ import SMSCampaignsPage from './pages/SMSCampaignsPage.vue';
 import WhatsAppCampaignsPage from './pages/WhatsAppCampaignsPage.vue';
 import WhatsAppCampaignDetailPage from './pages/WhatsAppCampaignDetailPage.vue';
 import WhatsAppTemplatesPage from './pages/WhatsAppTemplatesPage.vue';
+import WhatsAppCampaignSettings from './pages/WhatsAppCampaignSettings.vue';
 import { FEATURE_FLAGS } from 'dashboard/featureFlags';
 
 const isWhatsAppOnly = () => window.chatwootConfig?.whatsappOnly === true;
@@ -71,15 +72,6 @@ const campaignsRoutes = {
           component: WhatsAppCampaignsPage,
         },
         {
-          path: 'whatsapp/:campaignId',
-          name: 'campaigns_whatsapp_detail',
-          meta: {
-            ...meta,
-            featureFlag: FEATURE_FLAGS.WHATSAPP_CAMPAIGNS,
-          },
-          component: WhatsAppCampaignDetailPage,
-        },
-        {
           path: 'whatsapp/templates',
           name: 'campaigns_whatsapp_templates',
           meta: {
@@ -87,6 +79,24 @@ const campaignsRoutes = {
             featureFlag: FEATURE_FLAGS.WHATSAPP_CAMPAIGNS,
           },
           component: WhatsAppTemplatesPage,
+        },
+        {
+          path: 'whatsapp/settings',
+          name: 'campaigns_whatsapp_settings',
+          meta: {
+            ...meta,
+            featureFlag: FEATURE_FLAGS.WHATSAPP_CAMPAIGNS,
+          },
+          component: WhatsAppCampaignSettings,
+        },
+        {
+          path: 'whatsapp/:campaignId',
+          name: 'campaigns_whatsapp_detail',
+          meta: {
+            ...meta,
+            featureFlag: FEATURE_FLAGS.WHATSAPP_CAMPAIGNS,
+          },
+          component: WhatsAppCampaignDetailPage,
         },
       ],
     },

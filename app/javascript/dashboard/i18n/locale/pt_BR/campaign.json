@@ -302,6 +302,27 @@
         "DELETE_TITLE": "Excluir campanha?",
         "DELETE_DESC": "A exclusão é permanente e não pode ser revertida.",
         "DELETE_CONFIRM": "Excluir"
+      },
+      "SETTINGS": {
+        "TITLE": "Configurações de Campanhas WhatsApp",
+        "RATE_LIMIT": "Limite de taxa padrão (por minuto)",
+        "RATE_LIMIT_HINT": "Envio máximo de mensagens por minuto. A Meta recomenda 10-20.",
+        "BATCH_SIZE": "Tamanho do lote padrão",
+        "BATCH_SIZE_HINT": "Número de destinatários processados por ciclo de dispatch.",
+        "MAX_RETRIES": "Máximo de tentativas",
+        "SEND_WINDOW_ENABLE": "Ativar janela de envio",
+        "SEND_WINDOW_START": "Início",
+        "SEND_WINDOW_END": "Fim",
+        "DEFAULT_TIMEZONE": "Fuso horário padrão",
+        "SAVE": "Salvar configurações",
+        "SAVED": "Configurações salvas com sucesso",
+        "SAVE_ERROR": "Erro ao salvar configurações"
+      },
+      "EXPORT": {
+        "REQUESTED": "Exportação solicitada. O arquivo estará disponível em instantes.",
+        "DOWNLOAD": "Baixar exportação",
+        "NO_EXPORT": "Nenhuma exportação disponível. Solicite uma primeiro.",
+        "EXPIRED": "Exportação expirada. Solicite uma nova."
       }
     },
     "CONFIRM_DELETE": {

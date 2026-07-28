@@ -101,6 +101,10 @@ class Account < ApplicationRecord
   has_many :whatsapp_channels, dependent: :destroy_async, class_name: '::Channel::Whatsapp'
   has_many :whatsapp_bulk_campaigns, dependent: :destroy_async, class_name: '::Whatsapp::BulkCampaign'
   has_many :whatsapp_bulk_templates, dependent: :destroy_async, class_name: '::Whatsapp::BulkTemplate'
+
+  def whatsapp_campaign_settings
+    custom_attributes&.dig('whatsapp_campaign_settings') || {}
+  end
   has_many :working_hours, dependent: :destroy_async
 
   has_one_attached :contacts_export

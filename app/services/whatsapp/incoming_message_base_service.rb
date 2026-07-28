@@ -45,7 +45,11 @@ class Whatsapp::IncomingMessageBaseService
       create_messages
     end
 
-    Whatsapp::Bulk::ReplyAttributionService.new(contact: @contact, inbox: @inbox).perform if @contact.present?
+    begin
+      Whatsapp::Bulk::ReplyAttributionService.new(contact: @contact, inbox: @inbox).perform if @contact.present?
+    rescue StandardError => e
+      Rails.logger.warn("ReplyAttributionService skipped: #{e.message}")
+    end
   end
 
   def process_statuses
